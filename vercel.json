@@ -1,0 +1,40 @@
+{
+    "version": 2,
+    "name": "dax-website",
+    "builds": [
+        {
+            "src": "*.html",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "src/**",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/",
+            "dest": "/index.html"
+        },
+        {
+            "src": "/marketplace",
+            "dest": "/marketplace.html"
+        },
+        {
+            "src": "/my-garage",
+            "dest": "/my-garage-new.html"
+        },
+        {
+            "src": "/community",
+            "dest": "/community.html"
+        },
+        {
+            "src": "/car-details",
+            "dest": "/car-details.html"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/$1"
+        }
+    ]
+}

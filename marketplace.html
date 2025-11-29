@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>DAX - Decentralized Automotive Exchange</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
+    <link href="./src/css/style.css" rel="stylesheet">
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0da6f2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="font-display">
+    <div
+        class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <div class="px-4 sm:px-8 md:px-16 lg:px-24 xl:px-40 flex flex-1 justify-center py-5">
+                <div class="layout-content-container flex flex-col w-full max-w-[1280px] flex-1">
+                    <header
+                        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-white/10 px-6 sm:px-10 py-3 bg-background-dark/50 backdrop-blur-sm sticky top-5 z-10 rounded-lg">
+                        <div class="flex items-center gap-4 text-white">
+                            <div class="size-6 text-primary">
+                                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_6_319)">
+                                        <path
+                                            d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"
+                                            fill="currentColor"></path>
+                                    </g>
+                                    <defs>
+                                        <clippath id="clip0_6_319">
+                                            <rect fill="white" height="48" width="48"></rect>
+                                        </clippath>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">DAX</h2>
+                        </div>
+                        <div class="hidden lg:flex flex-1 justify-end gap-8">
+                            <div class="flex items-center gap-9">
+                                <a class="text-white/80 hover:text-primary transition-colors text-sm font-medium leading-normal"
+                                    href="index.html">Home</a>
+                                <a class="text-primary text-sm font-medium leading-normal"
+                                    href="marketplace.html">Marketplace</a>
+                                <a class="text-white/80 hover:text-primary transition-colors text-sm font-medium leading-normal"
+                                    href="my-garage-new.html">My Garage</a>
+                                <a class="text-white/80 hover:text-primary transition-colors text-sm font-medium leading-normal"
+                                    href="community.html">Community</a>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="connectWalletBtn"
+                                    class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(13,166,242,0.5)]">
+                                    <span class="truncate">Connect Wallet</span>
+                                </button>
+                                <button
+                                    class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+                                    <span class="material-symbols-outlined text-xl">toggle_on</span>
+                                </button>
+                                <button
+                                    class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+                                    <span class="material-symbols-outlined text-xl">notifications</span>
+                                </button>
+                            </div>
+                        </div>
+                        <button
+                            class="flex lg:hidden max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+                            <span class="material-symbols-outlined text-2xl">menu</span>
+                        </button>
+                    </header>
+                    <main class="flex-grow mt-8">
+                        <div class="flex flex-wrap justify-between gap-3 p-4">
+                            <div class="flex min-w-72 flex-col gap-3">
+                                <p class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">Explore the
+                                    Future of Driving</p>
+                                <p class="text-[#9cb0ba] text-base font-normal leading-normal">Browse, buy, and trade
+                                    tokenized vehicles on the blockchain.</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 py-3 border-y border-white/10 mt-4">
+                            <div class="flex gap-2 flex-wrap">
+                                <button
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors pl-4 pr-2">
+                                    <p class="text-white text-sm font-medium leading-normal">Make &amp; Model</p>
+                                    <span class="material-symbols-outlined text-xl text-white/80">arrow_drop_down</span>
+                                </button>
+                                <button
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors pl-4 pr-2">
+                                    <p class="text-white text-sm font-medium leading-normal">Price Range</p>
+                                    <span class="material-symbols-outlined text-xl text-white/80">arrow_drop_down</span>
+                                </button>
+                                <button
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors pl-4 pr-2">
+                                    <p class="text-white text-sm font-medium leading-normal">Year</p>
+                                    <span class="material-symbols-outlined text-xl text-white/80">arrow_drop_down</span>
+                                </button>
+                                <button
+                                    class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors pl-4 pr-2">
+                                    <p class="text-white text-sm font-medium leading-normal">NFT Traits</p>
+                                    <span class="material-symbols-outlined text-xl text-white/80">arrow_drop_down</span>
+                                </button>
+                            </div>
+                            <div class="flex gap-2">
+                                <button
+                                    class="p-2 text-white/80 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
+                                    <span class="material-symbols-outlined text-2xl">filter_list</span>
+                                </button>
+                                <button
+                                    class="p-2 text-white/80 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
+                                    <span class="material-symbols-outlined text-2xl">sort</span>
+                                </button>
+                                <button
+                                    class="p-2 text-white/80 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
+                                    <span class="material-symbols-outlined text-2xl">grid_view</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Filters and Controls -->
+                        <div id="filtersContainer" class="p-4">
+                            <!-- Filters will be populated by JavaScript -->
+                        </div>
+
+                        <!-- Marketplace Grid -->
+                        <div id="marketplaceGrid"
+                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                            <!-- Cars will be loaded dynamically -->
+                        </div>
+
+                        <!-- Sample Cars (will be replaced by dynamic content) -->
+                        <div class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4"
+                            id="sampleCars">
+                            <div class=" flex flex-col gap-3 rounded-lg bg-white/5 border border-white/10 p-3 group
+                            hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                                <div
+                                    class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="Sleek black supercar, Neuro-Lambo V12"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB1rJZNLBdqf_eDk27ROerSdQpajeiY31AmkFwzJgSAdSHufoIhJ6kbOvTx3lwv6KURG47-t6aS_r6TWCTU5lOfQL9pIy_AVmn6CAnNuKh_xch7FBSxobI4hbFkoOGbm_zYNKcWjQHTtjcKyaxMm-taAHRMJEgsBIbhzVi7ULqQVR3bAShcJxa-_kYlZzAJfTVWfqw2tRsFctNfoWOP8oAcz42rD8WCdd42aAP1Yk9rAS3iPyMznHhbsmVaD6P06QRc3AL1TAddbA" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <p class="text-white text-base font-medium leading-normal">Neuro-Lambo V12</p>
+                                    <p class="text-primary text-sm font-bold leading-normal">120 ETH</p>
+                                    <p class="text-[#9cb0ba] text-xs font-normal leading-normal truncate">NFT ID:
+                                        #0x3c4d5e6f7g8h9i0j1k2l</p>
+                                </div>
+                            </div>
+                            <div
+                                class="flex flex-col gap-3 rounded-lg bg-white/5 border border-white/10 p-3 group hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                                <div
+                                    class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="Elegant electric vehicle, Aetheria Model S"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuASzYpgzlRx3k9l-dwhnRacIAEcyIPKDZphaxsqk2gJkN_lo7porPcwfmxnOfE672oTbmHnDwxcrVfjDGCFMuso93THf5f-HzZYJ0TIGLUuZqukFCwjrpdNi6rbwdUz05ap1VcUEmy-Z3BZmqT-HhEO0ZkprdBDKH-EqC_i1ONwGotyKmjhPo7rAXca60TXinJuuBN6pMiilgPQa6YLF014kkrE4Bko-APBSu6qRmzySyrrhBLRA6oIQgzoyIX03tNsIGBRwJt4k4c" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <p class="text-white text-base font-medium leading-normal">Aetheria Model S</p>
+                                    <p class="text-primary text-sm font-bold leading-normal">78 ETH</p>
+                                    <p class="text-[#9cb0ba] text-xs font-normal leading-normal truncate">NFT ID:
+                                        #0x5e6f7g8h9i0j1k2l3m4n</p>
+                                </div>
+                            </div>
+                            <div
+                                class="flex flex-col gap-3 rounded-lg bg-white/5 border border-white/10 p-3 group hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                                <div
+                                    class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="Japanese performance car, Ronin GTR-X"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqOothNsZXUb4WE7maqPaW4b9AioRROMje9UHa3PivDiA0QdhIatHSqr3WO5XEeOimQ0CrtcrNWepgfg9ElDcBZW2o4SfvtKktSCpqH9wMeWECld6iQkSsXlbzUvWGsfeP8XMcPryLjd9uPYvMQqjNYsGX91xr4xomI1N1mcNf0VaFpOy6ziADRYqKl1VhcfVC0TXpdETUkO-T7hH_gERxIcfItJxa_QxS7jEJXY9Pwy-J3Lm8Z7CFCtvwaPlMhRjuv3vqkDpff1E" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <p class="text-white text-base font-medium leading-normal">Ronin GTR-X</p>
+                                    <p class="text-primary text-sm font-bold leading-normal">95 ETH</p>
+                                    <p class="text-[#9cb0ba] text-xs font-normal leading-normal truncate">NFT ID:
+                                        #0x7g8h9i0j1k2l3m4n5o6p</p>
+                                </div>
+                            </div>
+                            <div
+                                class="flex flex-col gap-3 rounded-lg bg-white/5 border border-white/10 p-3 group hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                                <div
+                                    class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="Hyper-modern convertible, Tesseract Roadster"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuChwe6JU_c8bqV20qDiNV3d8jl5czKyt33YW77cuUy-q03y_pEphiWEufBNLtxke4XqmdNigYizErOfbLM53FPHoZeC2FMXhNkJ9pcXU1QV1NjDB4_4l1vpzGzHFJ_v4xF-LzCf6apzTUBceJ8EgcMeDceMfVfp1wM7juF_mb7azF44N84U7WzI21NQSkeorbFww7cA4Nv4A0gldw67x7Boyti2Fob5PwXwa3JDz5Jaynx7PndUQxss7F_G5D5hlYKi50V_HL4yWzg" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <p class="text-white text-base font-medium leading-normal">Tesseract Roadster</p>
+                                    <p class="text-primary text-sm font-bold leading-normal">150 ETH</p>
+                                    <p class="text-[#9cb0ba] text-xs font-normal leading-normal truncate">NFT ID:
+                                        #0x9i0j1k2l3m4n5o6p7q8r</p>
+                                </div>
+                            </div>
+                            <div
+                                class="flex flex-col gap-3 rounded-lg bg-white/5 border border-white/10 p-3 group hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                                <div
+                                    class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="Retrowave style supercar, Synthwave P1"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0WbHVj_IUIetVSaMFR5nsMb9gxSw30H3VExascbCZMlBGtv5OPBq0wATC6-3PsFs3-mLaURM09FxFy9kn3yHcwLESoIBdohPDi4Xv0g9ZDVkJ5wBl-gRHkqlR3CKos40pIL-ErgY_JXzF4RSD_KJ8xGaZUjIaGYFct8STQ7Up09Du5I9R1azK-CAy7lUS2Jr3tPo_18DdeuOXf2w85tBLw0wHO0nSUx7y64eyXkEBws1VFwBYvGfdCMRWL45zFjqYupmaXCj_7aE" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <p class="text-white text-base font-medium leading-normal">Synthwave P1</p>
+                                    <p class="text-primary text-sm font-bold leading-normal">110 ETH</p>
+                                    <p class="text-[#9cb0ba] text-xs font-normal leading-normal truncate">NFT ID:
+                                        #0x1k2l3m4n5o6p7q8r9s0t</p>
+                                </div>
+                            </div>
+                            <div
+                                class="flex flex-col gap-3 rounded-lg bg-white/5 border border-white/10 p-3 group hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                                <div
+                                    class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="Stealthy hypercar, Voidrunner Wraith"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYT3qxbrvNdhs18TFiLW7W_UKuYkueVh16E-gq85cR3VYOxCU7mclB6kbHDjfMMfY3e1lV1Uufgv3mc5M6zhbR20KW0U6vRDmO7otWyFsfSSou9xqHcaeU97h9pv8v8vuPzMN1vOeL0ypRNVENH7gKMTiwoOeGqjSPNufEzdCi5zZuHXtg21OUw36_chn0gRRY7AvuLyqUzllElepS-zMge7fIJTOBBXc1OT7RjkBKyQoc3iXYcvf5f6dveDsNaGJndmQvNwBsa6E" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <p class="text-white text-base font-medium leading-normal">Voidrunner Wraith</p>
+                                    <p class="text-primary text-sm font-bold leading-normal">88 ETH</p>
+                                    <p class="text-[#9cb0ba] text-xs font-normal leading-normal truncate">NFT ID:
+                                        #0x3m4n5o6p7q8r9s0t1u2v</p>
+                                </div>
+                            </div>
+                            <div
+                                class="flex flex-col gap-3 rounded-lg bg-white/5 border border-white/10 p-3 group hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                                <div
+                                    class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden">
+                                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-alt="Golden sports car, Helios Apex"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5NjmhEjORRyyN7hgDsuWaYyVPfBwwT3F1UuwlqEDpW2x2dKwmBRge62REQxQMRa7b2P87NrspcKFBi_v__Fvnl57PRVY_TTS-i8wtmqUupR9104Gt2j3ydsVVP1KnxsvA19KyLgJdn2rZ2kxQeKKDx4uu1rYbyhdnNo91pjmxVHwmfrJebGs-AwxJfVr9fLeW1AnOgtmeCDFeJLpq84j0f_Tnn1-WfHOxB7VR9dxWMxx3Yv-yQdFAUJI60lk3CY6X2i4UGdNG6DM" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <p class="text-white text-base font-medium leading-normal">Helios Apex</p>
+                                    <p class="text-primary text-sm font-bold leading-normal">62 ETH</p>
+                                    <p class="text-[#9cb0ba] text-xs font-normal leading-normal truncate">NFT ID:
+                                        #0x5o6p7q8r9s0t1u2v3w4x</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <footer class="mt-16 border-t border-white/10 py-8 px-4">
+                        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div class="text-center md:text-left">
+                                <p class="text-sm text-white/60">© 2024 DAX - Decentralized Automotive Exchange. All
+                                    rights reserved.</p>
+                                <p class="text-xs text-white/40 mt-1 truncate">Contract:
+                                    0xAbCdEf1234567890AbCdEf1234567890AbCdEf12</p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <a class="text-white/60 hover:text-primary transition-colors" href="#">
+                                    <svg aria-hidden="true" class="h-6 w-6" fill="currentColor" viewbox="0 0 24 24">
+                                        <path
+                                            d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84">
+                                        </path>
+                                    </svg>
+                                </a>
+                                <a class="text-white/60 hover:text-primary transition-colors" href="#">
+                                    <svg aria-hidden="true" class="h-6 w-6" fill="currentColor" viewbox="0 0 24 24">
+                                        <path clip-rule="evenodd"
+                                            d="M12 2C6.477 2 2 6.477 2 12.014c0 4.438 2.865 8.203 6.839 9.53.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.03 1.595 1.03 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.001 10.001 0 0022 12.014C22 6.477 17.523 2 12 2z"
+                                            fill-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                                <a class="text-white/60 hover:text-primary transition-colors" href="#">
+                                    <svg aria-hidden="true" class="h-6 w-6" fill="currentColor" viewbox="0 0 24 24">
+                                        <path clip-rule="evenodd"
+                                            d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.012-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.048-1.024-.06-1.378-.06-3.808s.012-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 016.345 2.525c.636-.247 1.363-.416 2.427-.465C9.792 2.013 10.146 2 12.315 2zm-1.161 4.573a.75.75 0 01.75-.75h1.5a.75.75 0 01.75.75v1.5a.75.75 0 01-.75.75h-1.5a.75.75 0 01-.75-.75v-1.5zM12 9.75a4.5 4.5 0 100 9 4.5 4.5 0 000-9zm0 7.5a3 3 0 110-6 3 3 0 010 6z"
+                                            fill-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./src/js/components.js"></script>
+    <script src="./src/js/marketplace.js"></script>
+    <script src="./src/js/app.js"></script>
+    <script>
+        // Marketplace specific functionality
+        deAutoApp.loadPageContent = async function () {
+            if (this.currentPage === 'marketplace') {
+                await marketplaceManager.init();
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                console.log('Marketplace page loading...');
+                deAutoApp.currentPage = 'marketplace';
+                await deAutoApp.init();
+                await marketplaceManager.init();
+                console.log('Marketplace page loaded successfully');
+            } catch (error) {
+                console.error('Error initializing marketplace page:', error);
+                deAutoApp.showNotification('Error loading marketplace', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

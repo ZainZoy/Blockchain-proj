@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>DAX - Community</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
+    <link href="./src/css/style.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0da6f2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display">
+    <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <div class="flex flex-1 justify-center px-4 sm:px-8 md:px-16 lg:px-24 xl:px-40 py-5">
+                <div class="layout-content-container flex flex-col w-full max-w-[1280px] flex-1">
+                    <!-- TopNavBar -->
+                    <header
+                        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-white/10 bg-background-dark/30 backdrop-blur-sm px-6 sm:px-10 py-3 sticky top-5 z-50 rounded-lg">
+                        <div class="flex items-center gap-4 text-white">
+                            <div class="size-5 text-primary">
+                                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                    <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
+                                        fill="currentColor" fill-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">DAX</h2>
+                        </div>
+                        <div class="hidden lg:flex flex-1 justify-end gap-8">
+                            <nav class="flex items-center gap-9">
+                                <a class="text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                                    href="index.html">Home</a>
+                                <a class="text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                                    href="marketplace.html">Marketplace</a>
+                                <a class="text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                                    href="my-garage-new.html">My Garage</a>
+                                <a class="text-primary text-sm font-bold leading-normal"
+                                    href="community.html">Community</a>
+                            </nav>
+                            <button id="connectWalletBtn"
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all duration-300 shadow-[0_0_15px_rgba(13,166,242,0.5)] hover:shadow-[0_0_25px_rgba(13,166,242,0.8)]">
+                                <span class="truncate">Connect Wallet</span>
+                            </button>
+                        </div>
+                        <button class="lg:hidden text-white">
+                            <span class="material-symbols-outlined text-3xl">menu</span>
+                        </button>
+                    </header>
+
+                    <!-- Hero Section -->
+                    <div class="@container mt-8">
+                        <div class="@[480px]:p-4">
+                            <div class="flex min-h-[40vh] flex-col gap-6 bg-cover bg-center bg-no-repeat @[480px]:gap-8 @[480px]:rounded-xl items-center justify-center p-4"
+                                style='background: linear-gradient(rgba(16, 28, 34, 0.8) 0%, rgba(16, 28, 34, 0.9) 100%), url("https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");'>
+                                <div class="flex flex-col gap-4 text-center max-w-3xl">
+                                    <h1
+                                        class="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-5xl">
+                                        Join the DAX Community
+                                    </h1>
+                                    <h2 class="text-white/80 text-base font-normal leading-normal @[480px]:text-lg">
+                                        Connect with fellow car enthusiasts, collectors, and blockchain pioneers.
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Community Stats -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-4 mt-8">
+                        <div class="bg-background-dark/50 p-6 rounded-xl text-center border border-white/10">
+                            <div class="text-3xl font-bold text-primary mb-2">1,234</div>
+                            <div class="text-white/80">Community Members</div>
+                        </div>
+                        <div class="bg-background-dark/50 p-6 rounded-xl text-center border border-white/10">
+                            <div class="text-3xl font-bold text-primary mb-2">567</div>
+                            <div class="text-white/80">Cars Minted</div>
+                        </div>
+                        <div class="bg-background-dark/50 p-6 rounded-xl text-center border border-white/10">
+                            <div class="text-3xl font-bold text-primary mb-2">89</div>
+                            <div class="text-white/80">Active Traders</div>
+                        </div>
+                    </div>
+
+                    <!-- Community Features -->
+                    <div class="p-4 mt-12">
+                        <h2 class="text-white text-3xl font-bold mb-8 text-center">Community Features</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <!-- Discord -->
+                            <div class="bg-background-dark/50 p-6 rounded-xl border border-white/10 card-glow">
+                                <div class="text-4xl mb-4">💬</div>
+                                <h3 class="text-white text-xl font-bold mb-3">Discord Community</h3>
+                                <p class="text-white/70 mb-4">Join our Discord server to chat with other collectors and
+                                    get support.</p>
+                                <button onclick="window.open('https://discord.gg/de-auto', '_blank')"
+                                    class="bg-[#5865F2] text-white px-4 py-2 rounded-lg hover:bg-[#4752C4] transition-colors">
+                                    Join Discord
+                                </button>
+                            </div>
+
+                            <!-- Twitter -->
+                            <div class="bg-background-dark/50 p-6 rounded-xl border border-white/10 card-glow">
+                                <div class="text-4xl mb-4">🐦</div>
+                                <h3 class="text-white text-xl font-bold mb-3">Follow on Twitter</h3>
+                                <p class="text-white/70 mb-4">Stay updated with announcements and community highlights.
+                                </p>
+                                <button onclick="window.open('https://twitter.com/deauto_nft', '_blank')"
+                                    class="bg-[#1DA1F2] text-white px-4 py-2 rounded-lg hover:bg-[#0d8bd9] transition-colors">
+                                    Follow Us
+                                </button>
+                            </div>
+
+                            <!-- Newsletter -->
+                            <div class="bg-background-dark/50 p-6 rounded-xl border border-white/10 card-glow">
+                                <div class="text-4xl mb-4">📧</div>
+                                <h3 class="text-white text-xl font-bold mb-3">Newsletter</h3>
+                                <p class="text-white/70 mb-4">Subscribe for weekly updates and market insights.</p>
+                                <button onclick="communityManager.showNewsletterModal()"
+                                    class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                                    Subscribe
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="flex flex-col gap-8 px-5 py-10 text-center @container border-t border-white/10 mt-16">
+                <div class="flex flex-wrap items-center justify-center gap-6 @[480px]:flex-row @[480px]:justify-around">
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="index.html">Home</a>
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="marketplace.html">Marketplace</a>
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="my-garage-new.html">My Garage</a>
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="community.html">Community</a>
+                </div>
+                <p class="text-[#9cb0ba] text-sm sm:text-base font-normal leading-normal">© 2024 De-Auto. All rights
+                    reserved.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Newsletter Modal -->
+    <div id="newsletterModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal text-white float-right text-2xl cursor-pointer">&times;</span>
+            <h2 class="text-white text-xl mb-4">Subscribe to Newsletter</h2>
+            <form id="newsletterForm" class="space-y-4">
+                <div>
+                    <label class="block text-white/80 text-sm mb-2">Email Address</label>
+                    <input type="email" id="email" placeholder="your@email.com" required class="form-input w-full">
+                </div>
+                <div>
+                    <label class="block text-white/80 text-sm mb-2">Name (Optional)</label>
+                    <input type="text" id="name" placeholder="Your Name" class="form-input w-full">
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="updates" class="rounded">
+                    <label for="updates" class="text-white/80 text-sm">I want to receive updates about new
+                        features</label>
+                </div>
+                <button type="submit" id="subscribeButton"
+                    class="w-full bg-primary text-white p-3 rounded hover:bg-primary/90 transition-colors font-semibold">
+                    Subscribe
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./src/js/components.js"></script>
+    <script src="./src/js/app.js"></script>
+    <script>
+        // Community Manager
+        class CommunityManager {
+            constructor() {
+                this.stats = {
+                    members: 1234,
+                    carsMinted: 567,
+                    activeTraders: 89
+                };
+            }
+
+            showNewsletterModal() {
+                deAutoApp.showModal('newsletterModal');
+            }
+
+            async subscribeToNewsletter(email, name, wantsUpdates) {
+                try {
+                    // Simulate API call
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    deAutoApp.showNotification('Successfully subscribed to newsletter!', 'success');
+                    deAutoApp.hideModal('newsletterModal');
+                    document.getElementById('newsletterForm').reset();
+                } catch (error) {
+                    console.error('Newsletter subscription failed:', error);
+                    deAutoApp.showNotification('Failed to subscribe. Please try again.', 'error');
+                }
+            }
+
+            updateStats() {
+                // Update community stats (could be connected to real data)
+                document.querySelector('.text-3xl.font-bold.text-primary').textContent = this.stats.members.toLocaleString();
+            }
+        }
+
+        // Initialize community manager
+        const communityManager = new CommunityManager();
+        window.communityManager = communityManager;
+
+        // Community page specific functionality
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                console.log('Community page loading...');
+                deAutoApp.currentPage = 'community';
+                await deAutoApp.init();
+                console.log('Community page loaded successfully');
+
+                // Setup newsletter form
+                document.getElementById('newsletterForm').addEventListener('submit', async function (e) {
+                    e.preventDefault();
+
+                    const email = document.getElementById('email').value;
+                    const name = document.getElementById('name').value;
+                    const wantsUpdates = document.getElementById('updates').checked;
+
+                    if (!email) {
+                        deAutoApp.showNotification('Please enter your email address', 'error');
+                        return;
+                    }
+
+                    const subscribeButton = document.getElementById('subscribeButton');
+                    subscribeButton.disabled = true;
+                    subscribeButton.textContent = 'Subscribing...';
+
+                    try {
+                        await communityManager.subscribeToNewsletter(email, name, wantsUpdates);
+                    } finally {
+                        subscribeButton.disabled = false;
+                        subscribeButton.textContent = 'Subscribe';
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing community page:', error);
+                deAutoApp.showNotification('Error loading community page', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

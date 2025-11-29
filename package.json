@@ -1,0 +1,21 @@
+{
+  "name": "dax-website",
+  "version": "1.0.0",
+  "description": "DAX - Decentralized Automotive Exchange",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "build": "echo 'No build process needed for static site'",
+    "start": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "nft",
+    "blockchain",
+    "cars",
+    "marketplace"
+  ],
+  "author": "DAX Team",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}

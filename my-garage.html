@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>My Garage (Owned NFTs)</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0da6f2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+
+        .btn-glow {
+            box-shadow: 0 0 5px #0da6f2, 0 0 10px #0da6f2, 0 0 15px #0da6f2;
+        }
+
+        .card-border-glow {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-border-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            border: 1px solid transparent;
+            background: linear-gradient(145deg, #0da6f2, #ff00ff) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .card-border-glow:hover::before {
+            opacity: 0.75;
+        }
+    </style>
+</head>
+
+<body class="font-display">
+    <div
+        class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <div class="px-4 sm:px-10 md:px-20 lg:px-40 flex flex-1 justify-center py-5">
+                <div class="layout-content-container flex flex-col w-full max-w-[1280px] flex-1">
+                    <!-- TopNavBar -->
+                    <header
+                        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-white/10 px-4 sm:px-10 py-4 bg-black/30 backdrop-blur-sm rounded-xl sticky top-5 z-50">
+                        <div class="flex items-center gap-4 text-white">
+                            <div class="size-6 text-primary">
+                                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                    <path clip-rule="evenodd"
+                                        d="M12.0799 24L4 19.2479L9.95537 8.75216L18.04 13.4961L18.0446 4H29.9554L29.96 13.4961L38.0446 8.75216L44 19.2479L35.92 24L44 28.7521L38.0446 39.2479L29.96 34.5039L29.9554 44H18.0446L18.04 34.5039L9.95537 39.2479L4 28.7521L12.0799 24Z"
+                                        fill="currentColor" fill-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-white text-xl font-bold leading-tight tracking-[-0.015em]">CypherDrive</h2>
+                        </div>
+                        <div class="hidden lg:flex flex-1 justify-end gap-8">
+                            <div class="flex items-center gap-9">
+                                <a class="text-white/80 hover:text-primary text-sm font-medium leading-normal transition-colors"
+                                    href="index.html">Home</a>
+                                <a class="text-white/80 hover:text-primary text-sm font-medium leading-normal transition-colors"
+                                    href="marketplace.html">Marketplace</a>
+                                <a class="text-primary text-sm font-bold leading-normal relative"
+                                    href="my-garage-new.html">My Garage
+                                    <span class="absolute -bottom-1 left-0 w-full h-0.5 bg-primary"></span></a>
+                                <a class="text-white/80 hover:text-primary text-sm font-medium leading-normal transition-colors"
+                                    href="community.html">Community</a>
+                            </div>
+                            <button
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] transition-all hover:scale-105 btn-glow">
+                                <span class="truncate">Connect Wallet</span>
+                            </button>
+                        </div>
+                        <button class="lg:hidden text-white">
+                            <span class="material-symbols-outlined">menu</span>
+                        </button>
+                    </header>
+                    <main class="flex-grow mt-12">
+                        <!-- PageHeading -->
+                        <div class="flex flex-wrap justify-between gap-3 p-4">
+                            <div class="flex min-w-72 flex-col gap-3">
+                                <p class="text-white text-4xl sm:text-5xl font-black leading-tight tracking-[-0.033em]">
+                                    Your Fleet</p>
+                                <p class="text-[#9cb0ba] text-base font-normal leading-normal">Your Collection of
+                                    Verified Digital Assets</p>
+                            </div>
+                        </div>
+                        <!-- ImageGrid with modified cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4">
+                            <!-- Card 1 -->
+                            <div
+                                class="flex flex-col gap-4 rounded-lg bg-white/5 backdrop-blur-md p-4 transition-transform hover:-translate-y-1 card-border-glow">
+                                <div class="bg-cover bg-center flex rounded-lg aspect-video"
+                                    data-alt="Futuristic DeLorean DMC-12 parked in a neon-lit alley"
+                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAp_snPD7JV8yl-p6ILGV_z4Z5nW1zCjWHZKUt0rq8jXzmTWAX2egHz-wIQwR8WP2bY1xaA8XE4CMKHAnOyfXIkQRdswg93PtsA8iBZSt_yo_nCxU8tFdiN1_CNh1STTInEvGz7-xnnZlwYLqJrl6jyG438_GKzUMle3PCcgUcV7Pfihnyg6rz82VUFY4IySijdm80ywfxLuV0g-Spm1mwn9jATqjUXj_qx5LXZSTbkVEPyU3XfZJX57cq9V7VGn1Zg-tAdveORK88");'>
+                                </div>
+                                <div class="flex flex-col gap-3">
+                                    <h3 class="text-white text-lg font-bold leading-tight line-clamp-2">DeLorean DMC-12
+                                        'Alpha'</h3>
+                                    <div class="flex items-center gap-2 text-primary text-xs font-semibold">
+                                        <span class="material-symbols-outlined !text-sm">verified_user</span>
+                                        <span>VERIFIED OWNERSHIP</span>
+                                    </div>
+                                    <p class="text-gray-400 text-xs font-mono">Token ID: #0078A4B1...C9</p>
+                                    <div class="flex gap-2 mt-2">
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-primary/20 text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/30 transition-colors">
+                                            <span class="truncate">View Details</span>
+                                        </button>
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-white/10 text-white/80 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-colors">
+                                            <span class="truncate">Manage</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Card 2 -->
+                            <div
+                                class="flex flex-col gap-4 rounded-lg bg-white/5 backdrop-blur-md p-4 transition-transform hover:-translate-y-1 card-border-glow">
+                                <div class="bg-cover bg-center flex rounded-lg aspect-video"
+                                    data-alt="Tesla Cybertruck driving through a futuristic cityscape at night"
+                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB5EYGJko9Tk9RysDMJM_ejt5w4b_Ywjf_K8vYBJ7nzk0mHCeIDRlnyR5gRWIImrN52v5bUvP5WlnN65Y-YOa2jjj68KKE1ocx1fvLIi5blLH7mX68b35hquQaZ4bKbgdXD1bXGoD6oBJDH7mkmWYT2s6CevoKTOmwLk8VCyvFnggj4GQkqapeyTIvIDXFVaNJZC-dswGTADuPft1n8DYbTXnHMnrKBu2m3ThTJmOwb76AiCiEumA5HbohhhwA-V1EuAR-3P3tjDcs");'>
+                                </div>
+                                <div class="flex flex-col gap-3">
+                                    <h3 class="text-white text-lg font-bold leading-tight line-clamp-2">Cybertruck
+                                        'Omega'</h3>
+                                    <div class="flex items-center gap-2 text-primary text-xs font-semibold">
+                                        <span class="material-symbols-outlined !text-sm">verified_user</span>
+                                        <span>VERIFIED OWNERSHIP</span>
+                                    </div>
+                                    <p class="text-gray-400 text-xs font-mono">Token ID: #0239F8D2...A1</p>
+                                    <div class="flex gap-2 mt-2">
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-primary/20 text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/30 transition-colors">
+                                            <span class="truncate">View Details</span>
+                                        </button>
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-white/10 text-white/80 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-colors">
+                                            <span class="truncate">Manage</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Card 3 -->
+                            <div
+                                class="flex flex-col gap-4 rounded-lg bg-white/5 backdrop-blur-md p-4 transition-transform hover:-translate-y-1 card-border-glow">
+                                <div class="bg-cover bg-center flex rounded-lg aspect-video"
+                                    data-alt="A futuristic motorcycle reminiscent of the Akira bike in a high-tech garage"
+                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDs68LstnyhA-G6jhertVqfqwPyuBfczdxnAv5rRKrUMEU8yZb_KYw9rFoTVm-F237lk1NYtfNFfou94FKplSMVaKsMFe2rM83iuAInHjH1D88tl6zWznPtdzMvnIdIZX1n4E-7VwrFdHevmVM3tU_aaf6dA9oHckLNx3_P4zJi3zWgOmWrjNh5P8BDeuKt5sY-8pLJUdhlN-YLSfgABKJSpaUJzmgVdWgMSTOchX2c_TqE9z4sTx6bTubAJQ5CQk-A23PJW3Gdq0U");'>
+                                </div>
+                                <div class="flex flex-col gap-3">
+                                    <h3 class="text-white text-lg font-bold leading-tight line-clamp-2">Akira Bike
+                                        'Tetsuo'</h3>
+                                    <div class="flex items-center gap-2 text-primary text-xs font-semibold">
+                                        <span class="material-symbols-outlined !text-sm">verified_user</span>
+                                        <span>VERIFIED OWNERSHIP</span>
+                                    </div>
+                                    <p class="text-gray-400 text-xs font-mono">Token ID: #0991C3E7...F5</p>
+                                    <div class="flex gap-2 mt-2">
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-primary/20 text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/30 transition-colors">
+                                            <span class="truncate">View Details</span>
+                                        </button>
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-white/10 text-white/80 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-colors">
+                                            <span class="truncate">Manage</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Card 4 -->
+                            <div
+                                class="flex flex-col gap-4 rounded-lg bg-white/5 backdrop-blur-md p-4 transition-transform hover:-translate-y-1 card-border-glow">
+                                <div class="bg-cover bg-center flex rounded-lg aspect-video"
+                                    data-alt="Classic Porsche 911 reimagined with cyberpunk aesthetics"
+                                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnMoGug-9nNCzWaU8HQ6HCC-x4WahayYMk3NL7LnNShrVAnu5ua6y41hAfV2P_yMJXwbJeWQixCM5FKSUieTazL5O-9OCQ_vpP-m2x4whwpzcu1KZF1NinjoMDAmtV0ThzyACLGWMR01ChoxIXWnv3HQMfFz_oYIEw3U4Rx7yo_1VQWOiZTeSukXjsrnmF51IA-_et5sEqKi31c6H3hPXdBaEdZDid8UrZXNiiW7mk7mAm0ug3swC_EKLWbmNL3ahhatWSrsSzzIM");'>
+                                </div>
+                                <div class="flex flex-col gap-3">
+                                    <h3 class="text-white text-lg font-bold leading-tight line-clamp-2">Porsche 911
+                                        'Neo'</h3>
+                                    <div class="flex items-center gap-2 text-primary text-xs font-semibold">
+                                        <span class="material-symbols-outlined !text-sm">verified_user</span>
+                                        <span>VERIFIED OWNERSHIP</span>
+                                    </div>
+                                    <p class="text-gray-400 text-xs font-mono">Token ID: #1048B2A9...0B</p>
+                                    <div class="flex gap-2 mt-2">
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-primary/20 text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/30 transition-colors">
+                                            <span class="truncate">View Details</span>
+                                        </button>
+                                        <button
+                                            class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-3 bg-white/10 text-white/80 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-colors">
+                                            <span class="truncate">Manage</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- EmptyState (example, would be shown conditionally) -->
+                        <!-- 
+                        <div class="flex flex-col px-4 py-16">
+                            <div class="flex flex-col items-center gap-6">
+                                <div class="bg-center bg-no-repeat aspect-video bg-contain rounded-lg w-full max-w-[360px]" data-alt="A neon outline of an empty garage" style='background-image: url("https://assets.ycodeapp.com/assets/app20315/images/gI9KajL9S1y1TjR6pDdhDkFfR1Nf3c1tHhO1eQ50.svg");'></div>
+                                <div class="flex max-w-[480px] flex-col items-center gap-2">
+                                    <p class="text-white text-lg font-bold leading-tight tracking-[-0.015em] max-w-[480px] text-center">Your Garage is Empty</p>
+                                    <p class="text-[#9cb0ba] text-sm font-normal leading-normal max-w-[480px] text-center">Connect your wallet to see your collection of owned vehicle NFTs.</p>
+                                </div>
+                                <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] transition-all hover:scale-105 btn-glow">
+                                    <span class="truncate">Connect Wallet</span>
+                                </button>
+                            </div>
+                        </div>
+                        -->
+                    </main>
+                    <!-- Footer -->
+                    <footer
+                        class="flex flex-col gap-8 px-5 py-10 text-center @container mt-20 border-t border-white/10">
+                        <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
+                            <a class="text-[#9cb0ba] hover:text-primary text-sm font-normal leading-normal transition-colors"
+                                href="#">Smart Contract</a>
+                            <a class="text-[#9cb0ba] hover:text-primary text-sm font-normal leading-normal transition-colors"
+                                href="#">Terms of Service</a>
+                            <a class="text-[#9cb0ba] hover:text-primary text-sm font-normal leading-normal transition-colors"
+                                href="#">Privacy Policy</a>
+                        </div>
+                        <div class="flex flex-wrap justify-center gap-6">
+                            <a class="text-[#9cb0ba] hover:text-primary transition-colors" href="#">
+                                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.3 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z">
+                                    </path>
+                                </svg>
+                            </a>
+                            <a class="text-[#9cb0ba] hover:text-primary transition-colors" href="#">
+                                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 4.162 2.535 7.72 6.09 9.186">
+                                    </path>
+                                    <path
+                                        d="m7.414 10.99-1.25 4.02 4.42-2.015c.188.038.38.06.58.06.828 0 1.5-.672 1.5-1.5s-.672-1.5-1.5-1.5-1.5.672-1.5 1.5c0 .04.002.078.005.117L7.414 10.99Z">
+                                    </path>
+                                    <path
+                                        d="m15.84 11.003-.117-.006c.003-.04.005-.077.005-.117 0-.828-.672-1.5-1.5-1.5s-1.5.672-1.5 1.5c0 .2.022.392.06.58l-2.015 4.42 4.02-1.25.003.003.117-.005.117-.005.002-.001Z">
+                                    </path>
+                                </svg>
+                            </a>
+                            <a class="text-[#9cb0ba] hover:text-primary transition-colors" href="#">
+                                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22 2 11 13"></path>
+                                    <path d="M22 2 15 22 11 13 2 9l20-7z"></path>
+                                </svg>
+                            </a>
+                        </div>
+                        <p class="text-[#9cb0ba] text-xs font-normal leading-normal">© 2024 CypherDrive. All Rights
+                            Reserved.</p>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

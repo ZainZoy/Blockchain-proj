@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>DAX - My Garage</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
+    <link href="./src/css/style.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0da6f2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display">
+    <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <div class="flex flex-1 justify-center px-4 sm:px-8 md:px-16 lg:px-24 xl:px-40 py-5">
+                <div class="layout-content-container flex flex-col w-full max-w-[1280px] flex-1">
+                    <!-- TopNavBar -->
+                    <header
+                        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-white/10 bg-background-dark/30 backdrop-blur-sm px-6 sm:px-10 py-3 sticky top-5 z-50 rounded-lg">
+                        <div class="flex items-center gap-4 text-white">
+                            <div class="size-5 text-primary">
+                                <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                    <path clip-rule="evenodd" d="M24 4H6V17.3333V30.6667H24V44H42V30.6667V17.3333H24V4Z"
+                                        fill="currentColor" fill-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">DAX</h2>
+                        </div>
+                        <div class="hidden lg:flex flex-1 justify-end gap-8">
+                            <nav class="flex items-center gap-9">
+                                <a class="text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                                    href="index.html">Home</a>
+                                <a class="text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                                    href="marketplace.html">Marketplace</a>
+                                <a class="text-primary text-sm font-bold leading-normal" href="my-garage-new.html">My
+                                    Garage</a>
+                                <a class="text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
+                                    href="community.html">Community</a>
+                            </nav>
+                            <button id="connectWalletBtn"
+                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all duration-300 shadow-[0_0_15px_rgba(13,166,242,0.5)] hover:shadow-[0_0_25px_rgba(13,166,242,0.8)]">
+                                <span class="truncate">Connect Wallet</span>
+                            </button>
+                        </div>
+                        <button class="lg:hidden text-white">
+                            <span class="material-symbols-outlined text-3xl">menu</span>
+                        </button>
+                    </header>
+
+                    <!-- Wallet Info -->
+                    <div id="walletInfo" class="hidden p-4 bg-background-dark/50 rounded-lg mt-4">
+                        <!-- Wallet info will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Page Header -->
+                    <div class="flex flex-wrap justify-between gap-3 p-4 mt-8">
+                        <div class="flex min-w-72 flex-col gap-3">
+                            <h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">My Garage</h1>
+                            <p class="text-white/80 text-base font-normal leading-normal">Your collection of owned car
+                                NFTs</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="refreshGarageBtn"
+                                class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white/10 text-white/80 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-colors">
+                                <span class="material-symbols-outlined mr-2">refresh</span>
+                                <span class="truncate">Refresh</span>
+                            </button>
+                            <button id="mintCarBtn"
+                                class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-green-700 transition-all duration-300">
+                                <span class="material-symbols-outlined mr-2">add</span>
+                                <span class="truncate">Mint Car</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Garage Grid -->
+                    <div id="garageGrid"
+                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+                        <!-- Cars will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="flex flex-col gap-8 px-5 py-10 text-center @container border-t border-white/10 mt-16">
+                <div class="flex flex-wrap items-center justify-center gap-6 @[480px]:flex-row @[480px]:justify-around">
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="index.html">Home</a>
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="marketplace.html">Marketplace</a>
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="my-garage-new.html">My Garage</a>
+                    <a class="text-[#9cb0ba] text-base font-normal leading-normal min-w-40 hover:text-primary transition-colors"
+                        href="community.html">Community</a>
+                </div>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <a class="text-[#9cb0ba] hover:text-primary transition-colors" href="#">
+                        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.3 9.4 4.5C12 8.7 12.7 5.3 15 3.5c2.1-1.7 5.1-.9 6.5 1.4.8-.2 1.5-.5 2.2-.8-.3.9-.8 1.6-1.5 2.1z">
+                            </path>
+                        </svg>
+                    </a>
+                    <a class="text-[#9cb0ba] hover:text-primary transition-colors" href="#">
+                        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C8.343 21.128 12 22 12 22z">
+                            </path>
+                        </svg>
+                    </a>
+                    <a class="text-[#9cb0ba] hover:text-primary transition-colors" href="#">
+                        <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                            </path>
+                        </svg>
+                    </a>
+                </div>
+                <p class="text-[#9cb0ba] text-sm sm:text-base font-normal leading-normal">© 2024 DAX - Decentralized
+                    Automotive Exchange. All rights
+                    reserved. <br class="sm:hidden" /> Contract: <span class="text-primary/80"
+                        id="contractAddress">0x123...abc</span></p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Mint Car Modal -->
+    <div id="mintModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal text-white float-right text-2xl cursor-pointer">&times;</span>
+            <h2 class="text-white text-xl mb-4">Mint New Car NFT</h2>
+            <form id="mintForm" class="space-y-4">
+                <div>
+                    <label class="block text-white/80 text-sm mb-2">VIN Number</label>
+                    <input type="text" id="vin" placeholder="17-character VIN" maxlength="17" required
+                        class="form-input w-full">
+                    <small class="text-white/60 text-xs">Vehicle Identification Number (17 characters)</small>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Make</label>
+                        <input type="text" id="make" placeholder="e.g., Tesla" required class="form-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Model</label>
+                        <input type="text" id="model" placeholder="e.g., Model S" required class="form-input w-full">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-white/80 text-sm mb-2">Year</label>
+                    <input type="number" id="year" placeholder="2024" min="1900" max="2030" required
+                        class="form-input w-full">
+                </div>
+
+                <div>
+                    <label class="block text-white/80 text-sm mb-2">Metadata URI</label>
+                    <input type="url" id="tokenURI" placeholder="https://ipfs.io/ipfs/..." required
+                        class="form-input w-full">
+                    <small class="text-white/60 text-xs">IPFS or HTTP URL to car metadata JSON</small>
+                </div>
+
+                <div>
+                    <label class="block text-white/80 text-sm mb-2">Car Image URL (Optional)</label>
+                    <input type="url" id="imageURL" placeholder="https://example.com/car-image.jpg"
+                        class="form-input w-full">
+                </div>
+
+                <button type="submit" id="mintButton"
+                    class="w-full bg-primary text-white p-3 rounded hover:bg-primary/90 transition-colors font-semibold">
+                    <span class="mint-text">Mint Car NFT</span>
+                    <div class="mint-loading hidden flex items-center justify-center gap-2">
+                        <div class="spinner"></div>
+                        <span>Minting...</span>
+                    </div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./src/js/components.js"></script>
+    <script src="./src/js/my-garage.js"></script>
+    <script src="./src/js/app.js"></script>
+    <script>
+        // My Garage specific functionality
+        deAutoApp.loadPageContent = async function () {
+            if (this.currentPage === 'my-garage') {
+                await myGarageManager.init();
+            }
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async function () {
+            deAutoApp.currentPage = 'my-garage';
+            await deAutoApp.init();
+            await myGarageManager.init();
+        });
+
+        // Mint form handler
+        document.getElementById('mintForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Get form values
+            const vin = document.getElementById('vin').value.trim();
+            const make = document.getElementById('make').value.trim();
+            const model = document.getElementById('model').value.trim();
+            const year = parseInt(document.getElementById('year').value);
+            const tokenURI = document.getElementById('tokenURI').value.trim();
+            const imageURL = document.getElementById('imageURL').value.trim();
+
+            // Validation
+            if (!vin || !make || !model || !year || !tokenURI) {
+                deAutoApp.showNotification('Please fill all required fields', 'error');
+                return;
+            }
+
+            // VIN validation (basic)
+            if (vin.length !== 17) {
+                deAutoApp.showNotification('VIN must be exactly 17 characters', 'error');
+                return;
+            }
+
+            // Year validation
+            const currentYear = new Date().getFullYear();
+            if (year < 1900 || year > currentYear + 5) {
+                deAutoApp.showNotification('Please enter a valid year', 'error');
+                return;
+            }
+
+            // Check wallet connection
+            if (!deAutoApp.currentUser) {
+                deAutoApp.showNotification('Please connect your wallet first', 'error');
+                return;
+            }
+
+            const mintButton = document.getElementById('mintButton');
+            const mintText = mintButton.querySelector('.mint-text');
+            const mintLoading = mintButton.querySelector('.mint-loading');
+
+            try {
+                // Show loading state
+                mintButton.disabled = true;
+                mintText.classList.add('hidden');
+                mintLoading.classList.remove('hidden');
+
+                await ContractManager.mintCar(vin, make, model, year, tokenURI);
+
+                deAutoApp.hideModal('mintModal');
+                this.reset();
+                await myGarageManager.loadMyCars(); // Refresh garage
+
+            } catch (error) {
+                console.error('Minting failed:', error);
+            } finally {
+                // Reset button state
+                mintButton.disabled = false;
+                mintText.classList.remove('hidden');
+                mintLoading.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
