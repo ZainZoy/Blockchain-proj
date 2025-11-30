@@ -33,6 +33,9 @@ class ContractManager {
 
     // Show loading state
     static showLoading(message = 'Processing...') {
+        // Remove any existing loading overlay first
+        this.hideLoading();
+        
         const loadingDiv = document.createElement('div');
         loadingDiv.id = 'loading-overlay';
         loadingDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
@@ -46,8 +49,9 @@ class ContractManager {
     }
 
     static hideLoading() {
-        const loadingDiv = document.getElementById('loading-overlay');
-        if (loadingDiv) loadingDiv.remove();
+        // Remove ALL loading overlays (in case multiple were created)
+        const loadingDivs = document.querySelectorAll('#loading-overlay');
+        loadingDivs.forEach(div => div.remove());
     }
 
     // List car for sale (this also mints the NFT)

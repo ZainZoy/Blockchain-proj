@@ -54,7 +54,7 @@ class MyGarageManager {
         if (!grid) return;
 
         const defaultMessage = deAutoApp.currentUser ?
-            "You don't own any car NFTs yet. List a car in the marketplace to get started!" :
+            "You don't own any car NFTs yet. Buy a car from the marketplace or list your own!" :
             "Please connect your wallet to view your cars";
 
         grid.innerHTML = `
@@ -63,13 +63,19 @@ class MyGarageManager {
                 <h3 class="text-white text-xl mb-2">Empty Garage</h3>
                 <p class="text-white/60 mb-6">${message || defaultMessage}</p>
                 ${deAutoApp.currentUser ? `
-                    <a href="marketplace.html" 
-                        class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors inline-block">
-                        Go to Marketplace
-                    </a>
+                    <div class="flex gap-3 justify-center flex-wrap">
+                        <a href="marketplace.html" 
+                            class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors inline-block font-semibold">
+                            Browse Marketplace
+                        </a>
+                        <button onclick="deAutoApp.showModal('listModal')" 
+                            class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                            + List Your Car
+                        </button>
+                    </div>
                 ` : `
                     <button onclick="deAutoApp.connectWallet()" 
-                        class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors">
+                        class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold">
                         Connect Wallet
                     </button>
                 `}
@@ -81,11 +87,11 @@ class MyGarageManager {
         return `
             <div class="flex flex-col gap-4 p-4 rounded-xl bg-background-dark/50 border border-white/10 card-glow hover:border-primary/50 transition-all duration-300">
                 <div class="relative">
-                    <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden" 
-                         style="background-image: url('${car.image}')">
-                        <img src="${car.image}" alt="${car.name}" 
-                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                             onerror="this.src='https://via.placeholder.com/400x300?text=Car+NFT'">
+                    <div class="w-full aspect-video rounded-lg overflow-hidden bg-background-dark/80 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🚗</div>
+                            <div class="text-white/60 text-sm">${car.make}</div>
+                        </div>
                     </div>
                     <div class="absolute top-2 right-2">
                         <span class="status-owned px-2 py-1 rounded text-xs font-medium bg-green-600/80 text-white">Owned</span>
@@ -103,6 +109,12 @@ class MyGarageManager {
                             <p class="text-white/60 text-xs">Token ID</p>
                             <p class="text-white/80 text-sm font-mono">#${car.tokenId}</p>
                         </div>
+                        ${car.isListed ? `
+                            <div class="text-right">
+                                <p class="text-white/60 text-xs">Listed for</p>
+                                <p class="text-primary text-sm font-bold">${car.listPrice} ETH</p>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="flex gap-2 mt-auto">
@@ -117,7 +129,7 @@ class MyGarageManager {
     }
 
     viewDetails(tokenId) {
-        // Navigate to car details page
+        // Navigate to car details page - car-details.html accepts both carId and tokenId
         window.location.href = `car-details.html?tokenId=${tokenId}`;
     }
 

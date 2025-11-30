@@ -14,7 +14,12 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         rel="stylesheet" />
-    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        if (typeof ethers === 'undefined') {
+            document.write('<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"><\/script>');
+        }
+    </script>
     <link href="./src/css/style.css" rel="stylesheet">
     <style>
         .material-symbols-outlined {
@@ -85,6 +90,11 @@
                                 <button id="connectWalletBtn"
                                     class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(13,166,242,0.5)]">
                                     <span class="truncate">Connect Wallet</span>
+                                </button>
+                                <button id="switchWalletBtn" onclick="deAutoApp.switchWallet()"
+                                    class="hidden min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-orange-500 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-orange-600 transition-all duration-300 shadow-[0_0_15px_rgba(249,115,22,0.5)] hover:shadow-[0_0_25px_rgba(249,115,22,0.8)]">
+                                    <span class="material-symbols-outlined text-sm mr-1">swap_horiz</span>
+                                    <span class="truncate">Switch Wallet</span>
                                 </button>
                                 <button
                                     class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
@@ -374,8 +384,7 @@
             try {
                 console.log('Marketplace page loading...');
                 deAutoApp.currentPage = 'marketplace';
-                await deAutoApp.init();
-                await marketplaceManager.init();
+                await deAutoApp.init(); // This will call loadPageContent which calls marketplaceManager.init()
                 console.log('Marketplace page loaded successfully');
             } catch (error) {
                 console.error('Error initializing marketplace page:', error);

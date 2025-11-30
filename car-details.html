@@ -12,7 +12,12 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         rel="stylesheet" />
-    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        if (typeof ethers === 'undefined') {
+            document.write('<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"><\/script>');
+        }
+    </script>
     <link href="./src/css/style.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -62,10 +67,17 @@
                                 <a class="text-white/80 text-sm font-medium leading-normal hover:text-primary transition-colors"
                                     href="community.html">Community</a>
                             </nav>
-                            <button id="connectWalletBtn"
-                                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all duration-300 shadow-[0_0_15px_rgba(13,166,242,0.5)] hover:shadow-[0_0_25px_rgba(13,166,242,0.8)]">
-                                <span class="truncate">Connect Wallet</span>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button id="connectWalletBtn"
+                                    class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-all duration-300 shadow-[0_0_15px_rgba(13,166,242,0.5)] hover:shadow-[0_0_25px_rgba(13,166,242,0.8)]">
+                                    <span class="truncate">Connect Wallet</span>
+                                </button>
+                                <button id="switchWalletBtn" onclick="deAutoApp.switchWallet()"
+                                    class="hidden min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-orange-500 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-orange-600 transition-all duration-300 shadow-[0_0_15px_rgba(249,115,22,0.5)] hover:shadow-[0_0_25px_rgba(249,115,22,0.8)]">
+                                    <span class="material-symbols-outlined text-sm mr-1">swap_horiz</span>
+                                    <span class="truncate">Switch Wallet</span>
+                                </button>
+                            </div>
                         </div>
                         <button class="lg:hidden text-white">
                             <span class="material-symbols-outlined text-3xl">menu</span>
@@ -118,16 +130,19 @@
         // Car Details specific functionality
         class CarDetailsManager {
             constructor() {
+                this.carId = null;
                 this.tokenId = null;
                 this.carData = null;
+                this.isListed = false;
             }
 
             async init() {
-                // Get token ID from URL parameters
+                // Get car ID or token ID from URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
+                this.carId = urlParams.get('carId');
                 this.tokenId = urlParams.get('tokenId');
 
-                if (!this.tokenId) {
+                if (!this.carId && !this.tokenId) {
                     this.showError('No car specified');
                     return;
                 }
@@ -137,60 +152,201 @@
 
             async loadCarDetails() {
                 try {
-                    // This would typically fetch from your contract or API
-                    // For now, we'll show a placeholder
+                    // Wait for wallet connection
+                    if (!deAutoApp.currentUser) {
+                        this.showConnectWalletMessage();
+                        return;
+                    }
+
+                    // Load contracts if not already loaded
+                    if (!deAutoApp.contracts) {
+                        await deAutoApp.loadContracts();
+                    }
+
+                    const { market, nft } = deAutoApp.contracts;
+
+                    // If we have a carId, look up from marketplace using getCar()
+                    if (this.carId) {
+                        const car = await market.getCar(this.carId);
+                        
+                        if (car.isSold) {
+                            this.showError('This car has already been sold');
+                            return;
+                        }
+
+                        this.isListed = true;
+                        this.tokenId = car.tokenId.toString();
+                        this.carData = {
+                            carId: this.carId,
+                            tokenId: this.tokenId,
+                            seller: car.seller,
+                            make: car.make,
+                            model: car.model,
+                            year: car.year.toString(),
+                            price: car.price,
+                            priceEth: ethers.utils.formatEther(car.price)
+                        };
+                    } 
+                    // If we have a tokenId, get details from NFT contract
+                    else if (this.tokenId) {
+                        const details = await nft.getCarDetails(this.tokenId);
+                        const owner = await nft.ownerOf(this.tokenId);
+                        
+                        // Check if it's listed in marketplace
+                        try {
+                            const carByToken = await market.getCarByTokenId(this.tokenId);
+                            if (carByToken.carId.toString() !== "0" && !carByToken.isSold) {
+                                this.isListed = true;
+                                this.carId = carByToken.carId.toString();
+                                this.carData = {
+                                    carId: this.carId,
+                                    tokenId: this.tokenId,
+                                    seller: carByToken.seller,
+                                    make: carByToken.make,
+                                    model: carByToken.model,
+                                    year: carByToken.year.toString(),
+                                    price: carByToken.price,
+                                    priceEth: ethers.utils.formatEther(carByToken.price)
+                                };
+                            }
+                        } catch (e) {
+                            // Not listed in marketplace
+                        }
+
+                        // If not found in marketplace, just show NFT details
+                        if (!this.carData) {
+                            this.isListed = false;
+                            this.carData = {
+                                carId: null,
+                                tokenId: this.tokenId,
+                                owner: owner,
+                                make: details.make,
+                                model: details.model,
+                                year: details.year.toString(),
+                                price: null,
+                                priceEth: null
+                            };
+                        }
+                    }
+
                     this.renderCarDetails();
                 } catch (error) {
                     console.error('Error loading car details:', error);
-                    this.showError('Error loading car details');
+                    this.showError('Error loading car details: ' + error.message);
                 }
+            }
+
+            showConnectWalletMessage() {
+                const content = document.getElementById('carDetailsContent');
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🔗</div>
+                        <h3 class="text-white text-xl mb-2">Connect Wallet</h3>
+                        <p class="text-white/60 mb-6">Please connect your wallet to view car details</p>
+                        <button onclick="deAutoApp.connectWallet().then(() => carDetailsManager.loadCarDetails())" 
+                            class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors">
+                            Connect Wallet
+                        </button>
+                    </div>
+                `;
             }
 
             renderCarDetails() {
                 const content = document.getElementById('carDetailsContent');
+                const isOwner = this.isListed 
+                    ? this.carData.seller?.toLowerCase() === deAutoApp.currentUser?.toLowerCase()
+                    : this.carData.owner?.toLowerCase() === deAutoApp.currentUser?.toLowerCase();
+                const shortContract = carNftAddress.slice(0, 6) + '...' + carNftAddress.slice(-4);
+                const ownerAddress = this.isListed ? this.carData.seller : this.carData.owner;
+                const shortOwner = ownerAddress ? `${ownerAddress.slice(0, 6)}...${ownerAddress.slice(-4)}` : 'Unknown';
+                
                 content.innerHTML = `
                     <div class="max-w-4xl mx-auto">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             <!-- Car Image -->
                             <div class="space-y-4">
-                                <div class="aspect-video bg-background-dark/50 rounded-lg overflow-hidden">
-                                    <img src="https://via.placeholder.com/600x400?text=Car+NFT+%23${this.tokenId}" 
-                                         alt="Car NFT" 
-                                         class="w-full h-full object-cover">
+                                <div class="aspect-video bg-background-dark/50 rounded-lg overflow-hidden flex items-center justify-center">
+                                    <div class="text-center p-8">
+                                        <div class="text-8xl mb-4">🚗</div>
+                                        <div class="text-white text-xl font-bold">${this.carData.make} ${this.carData.model}</div>
+                                        <div class="text-white/60">${this.carData.year}</div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Car Info -->
                             <div class="space-y-6">
                                 <div>
-                                    <h1 class="text-white text-3xl font-bold mb-2">Car NFT #${this.tokenId}</h1>
-                                    <p class="text-white/60">Unique digital car asset</p>
+                                    <h1 class="text-white text-3xl font-bold mb-2">${this.carData.make} ${this.carData.model}</h1>
+                                    <p class="text-white/60">Year: ${this.carData.year}</p>
+                                    ${isOwner ? '<span class="inline-block mt-2 bg-green-600/20 text-green-400 border border-green-600/30 px-3 py-1 rounded-full text-sm">You own this car</span>' : ''}
                                 </div>
+
+                                ${this.isListed ? `
+                                    <div class="bg-primary/20 p-4 rounded-lg">
+                                        <div class="text-white/60 text-sm">Price</div>
+                                        <div class="text-primary text-3xl font-bold">${this.carData.priceEth} ETH</div>
+                                    </div>
+                                ` : `
+                                    <div class="bg-white/10 p-4 rounded-lg">
+                                        <div class="text-white/60 text-sm">Status</div>
+                                        <div class="text-white text-xl font-bold">Not Listed for Sale</div>
+                                    </div>
+                                `}
 
                                 <div class="space-y-4">
                                     <div class="bg-background-dark/30 p-4 rounded-lg">
                                         <h3 class="text-white font-semibold mb-2">Details</h3>
                                         <div class="space-y-2 text-sm">
+                                            ${this.carData.carId ? `
+                                                <div class="flex justify-between">
+                                                    <span class="text-white/60">Car ID:</span>
+                                                    <span class="text-white">#${this.carData.carId}</span>
+                                                </div>
+                                            ` : ''}
                                             <div class="flex justify-between">
                                                 <span class="text-white/60">Token ID:</span>
-                                                <span class="text-white">#${this.tokenId}</span>
+                                                <span class="text-white">#${this.carData.tokenId}</span>
                                             </div>
                                             <div class="flex justify-between">
                                                 <span class="text-white/60">Contract:</span>
-                                                <span class="text-white font-mono text-xs">0x123...abc</span>
+                                                <span class="text-white font-mono text-xs">${shortContract}</span>
                                             </div>
                                             <div class="flex justify-between">
-                                                <span class="text-white/60">Blockchain:</span>
-                                                <span class="text-white">Ethereum</span>
+                                                <span class="text-white/60">${this.isListed ? 'Seller' : 'Owner'}:</span>
+                                                <span class="text-white font-mono text-xs">${shortOwner}</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span class="text-white/60">Network:</span>
+                                                <span class="text-white">Sepolia</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="flex gap-3">
-                                        <button class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary/90 transition-colors font-semibold">
-                                            Buy Now
-                                        </button>
-                                        <button class="bg-white/10 text-white/80 hover:text-white hover:bg-white/20 py-3 px-6 rounded-lg transition-colors">
+                                        ${this.isListed ? (isOwner ? `
+                                            <button onclick="carDetailsManager.removeListing()" 
+                                                class="flex-1 bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold">
+                                                Remove Listing
+                                            </button>
+                                        ` : `
+                                            <button onclick="carDetailsManager.buyNow()" 
+                                                class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+                                                Buy Now
+                                            </button>
+                                        `) : (isOwner ? `
+                                            <a href="marketplace.html" 
+                                                class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-semibold text-center">
+                                                List on Marketplace
+                                            </a>
+                                        ` : `
+                                            <button disabled 
+                                                class="flex-1 bg-white/10 text-white/50 py-3 px-6 rounded-lg cursor-not-allowed font-semibold">
+                                                Not For Sale
+                                            </button>
+                                        `)}
+                                        <button onclick="carDetailsManager.share()" 
+                                            class="bg-white/10 text-white/80 hover:text-white hover:bg-white/20 py-3 px-6 rounded-lg transition-colors">
                                             Share
                                         </button>
                                     </div>
@@ -202,7 +358,7 @@
                         <div class="mt-12 space-y-8">
                             <div class="bg-background-dark/30 p-6 rounded-lg">
                                 <h3 class="text-white text-xl font-bold mb-4">Description</h3>
-                                <p class="text-white/80">This is a unique car NFT representing ownership of a digital vehicle asset on the blockchain.</p>
+                                <p class="text-white/80">This ${this.carData.year} ${this.carData.make} ${this.carData.model} is a unique car NFT representing ownership of a digital vehicle asset on the Ethereum blockchain.</p>
                             </div>
 
                             <div class="bg-background-dark/30 p-6 rounded-lg">
@@ -210,21 +366,69 @@
                                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     <div class="bg-white/5 p-3 rounded text-center">
                                         <div class="text-white/60 text-xs uppercase">Make</div>
-                                        <div class="text-white font-semibold">Tesla</div>
+                                        <div class="text-white font-semibold">${this.carData.make}</div>
                                     </div>
                                     <div class="bg-white/5 p-3 rounded text-center">
                                         <div class="text-white/60 text-xs uppercase">Model</div>
-                                        <div class="text-white font-semibold">Model S</div>
+                                        <div class="text-white font-semibold">${this.carData.model}</div>
                                     </div>
                                     <div class="bg-white/5 p-3 rounded text-center">
                                         <div class="text-white/60 text-xs uppercase">Year</div>
-                                        <div class="text-white font-semibold">2024</div>
+                                        <div class="text-white font-semibold">${this.carData.year}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
+            }
+
+            async buyNow() {
+                try {
+                    deAutoApp.showLoading('Processing purchase...');
+                    await ContractManager.buyCar(this.carId, this.carData.price);
+                    deAutoApp.hideLoading();
+                    deAutoApp.showNotification('Car purchased successfully!', 'success');
+                    // Redirect to garage after purchase
+                    setTimeout(() => {
+                        window.location.href = 'my-garage-new.html';
+                    }, 2000);
+                } catch (error) {
+                    deAutoApp.hideLoading();
+                    console.error('Error buying car:', error);
+                    deAutoApp.showNotification('Failed to buy car: ' + (error.reason || error.message), 'error');
+                }
+            }
+
+            async removeListing() {
+                try {
+                    deAutoApp.showLoading('Removing listing...');
+                    await ContractManager.removeListing(this.carId);
+                    deAutoApp.hideLoading();
+                    deAutoApp.showNotification('Listing removed successfully!', 'success');
+                    // Redirect to garage after removal
+                    setTimeout(() => {
+                        window.location.href = 'my-garage-new.html';
+                    }, 2000);
+                } catch (error) {
+                    deAutoApp.hideLoading();
+                    console.error('Error removing listing:', error);
+                    deAutoApp.showNotification('Failed to remove listing: ' + (error.reason || error.message), 'error');
+                }
+            }
+
+            share() {
+                const url = window.location.href;
+                if (navigator.share) {
+                    navigator.share({
+                        title: `${this.carData.make} ${this.carData.model} - Car NFT`,
+                        text: `Check out this ${this.carData.year} ${this.carData.make} ${this.carData.model} on DAX!`,
+                        url: url
+                    });
+                } else {
+                    navigator.clipboard.writeText(url);
+                    deAutoApp.showNotification('Link copied to clipboard!', 'success');
+                }
             }
 
             showError(message) {

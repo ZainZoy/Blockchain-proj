@@ -1,4 +1,22 @@
 // Shared components and utilities
+
+// Check if ethers is available
+function waitForEthers(callback, maxAttempts = 50) {
+    let attempts = 0;
+    const check = () => {
+        if (typeof ethers !== 'undefined') {
+            callback();
+        } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(check, 100);
+        } else {
+            console.error('Ethers.js failed to load after multiple attempts');
+            alert('Failed to load blockchain library. Please refresh the page or check your internet connection.');
+        }
+    };
+    check();
+}
+
 class DeAutoApp {
     constructor() {
         this.currentPage = 'home';
@@ -59,28 +77,56 @@ class DeAutoApp {
     updateWalletUI(networkInfo = null, balance = '0') {
         const walletButtons = document.querySelectorAll('#connectWalletBtn, .connect-wallet-btn');
         const walletInfo = document.querySelectorAll('#walletInfo, .wallet-info');
+        const switchWalletButtons = document.querySelectorAll('#switchWalletBtn');
 
         const address = this.currentUser.substring(0, 6) + '...' + this.currentUser.substring(this.currentUser.length - 4);
         const balanceFormatted = parseFloat(balance).toFixed(4);
 
         walletButtons.forEach(btn => {
-            btn.innerHTML = `<span class="truncate">${address}</span>`;
+            btn.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="truncate font-mono">${address}</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            `;
             btn.classList.add('connected');
-            btn.style.background = 'linear-gradient(45deg, #0da6f2, #00d4aa)';
+            btn.style.background = 'linear-gradient(135deg, #0da6f2 0%, #00d4aa 100%)';
+            btn.style.minWidth = '160px';
 
-            // Add disconnect functionality
-            btn.onclick = () => this.showWalletMenu();
+            // Add click handler for wallet menu
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                this.showWalletMenu();
+            };
+        });
+
+        // Show the static Switch Wallet button when connected
+        switchWalletButtons.forEach(btn => {
+            console.log('Showing switch wallet button:', btn);
+            btn.classList.remove('hidden');
+            btn.style.display = 'flex';
         });
 
         walletInfo.forEach(info => {
             if (info) {
                 info.innerHTML = `
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-white text-sm">Connected: <span class="text-primary font-mono">${address}</span></p>
                             <p class="text-white/60 text-xs">Network: ${networkInfo?.name || 'Unknown'} | Balance: ${balanceFormatted} ${networkInfo?.currency || 'ETH'}</p>
                         </div>
-                        <button onclick="deAutoApp.disconnectWallet()" class="text-red-400 hover:text-red-300 text-xs">Disconnect</button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="deAutoApp.switchWallet()" class="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                                <span class="material-symbols-outlined text-base">swap_horiz</span>
+                                Switch Wallet
+                            </button>
+                            <button onclick="deAutoApp.disconnectWallet()" class="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2 rounded-lg text-sm font-bold transition-colors border border-red-500/30">
+                                Disconnect
+                            </button>
+                        </div>
                     </div>
                 `;
                 info.classList.remove('hidden');
@@ -95,33 +141,103 @@ class DeAutoApp {
     }
 
     showWalletMenu() {
+        // Remove existing menu first
+        document.querySelector('.wallet-menu')?.remove();
+
         const menu = document.createElement('div');
-        menu.className = 'fixed top-16 right-4 bg-background-dark border border-white/10 rounded-lg p-4 z-50 min-w-64';
+        menu.className = 'wallet-menu fixed top-20 right-4 sm:right-8 md:right-16 lg:right-24 xl:right-40 bg-background-dark border border-white/20 rounded-xl p-4 z-[100] min-w-72 shadow-2xl shadow-black/50';
         menu.innerHTML = `
             <div class="space-y-3">
-                <div class="text-white text-sm font-semibold">Wallet Menu</div>
-                <div class="text-white/80 text-xs font-mono">${this.currentUser}</div>
+                <div class="flex items-center justify-between">
+                    <div class="text-white text-sm font-bold">Wallet Connected</div>
+                    <div class="flex items-center gap-1">
+                        <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <span class="text-green-400 text-xs">Active</span>
+                    </div>
+                </div>
+                
+                <div class="bg-white/5 rounded-lg p-3">
+                    <div class="text-white/60 text-xs mb-1">Address</div>
+                    <div class="text-white text-sm font-mono break-all">${this.currentUser}</div>
+                </div>
+                
                 <hr class="border-white/10">
-                <button onclick="deAutoApp.copyAddress()" class="w-full text-left text-white/80 hover:text-primary text-sm py-1">Copy Address</button>
-                <button onclick="deAutoApp.viewOnExplorer()" class="w-full text-left text-white/80 hover:text-primary text-sm py-1">View on Explorer</button>
-                <button onclick="deAutoApp.disconnectWallet()" class="w-full text-left text-red-400 hover:text-red-300 text-sm py-1">Disconnect</button>
+                
+                <div class="space-y-1">
+                    <button onclick="deAutoApp.switchWallet()" class="w-full flex items-center gap-3 text-white hover:bg-white/10 rounded-lg px-3 py-2.5 transition-colors">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                        </svg>
+                        <span class="font-medium">Switch Wallet</span>
+                    </button>
+                    
+                    <button onclick="deAutoApp.copyAddress()" class="w-full flex items-center gap-3 text-white hover:bg-white/10 rounded-lg px-3 py-2.5 transition-colors">
+                        <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Copy Address</span>
+                    </button>
+                    
+                    <button onclick="deAutoApp.viewOnExplorer()" class="w-full flex items-center gap-3 text-white hover:bg-white/10 rounded-lg px-3 py-2.5 transition-colors">
+                        <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        <span>View on Explorer</span>
+                    </button>
+                </div>
+                
+                <hr class="border-white/10">
+                
+                <button onclick="deAutoApp.disconnectWallet()" class="w-full flex items-center gap-3 text-red-400 hover:bg-red-500/10 rounded-lg px-3 py-2.5 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span class="font-medium">Disconnect Wallet</span>
+                </button>
             </div>
         `;
 
-        // Remove existing menu
-        document.querySelector('.wallet-menu')?.remove();
-        menu.classList.add('wallet-menu');
         document.body.appendChild(menu);
 
         // Close menu when clicking outside
         setTimeout(() => {
-            document.addEventListener('click', function closeMenu(e) {
-                if (!menu.contains(e.target)) {
+            const closeHandler = (e) => {
+                if (!menu.contains(e.target) && !e.target.closest('#connectWalletBtn')) {
                     menu.remove();
-                    document.removeEventListener('click', closeMenu);
+                    document.removeEventListener('click', closeHandler);
                 }
-            });
+            };
+            document.addEventListener('click', closeHandler);
         }, 100);
+    }
+
+    async switchWallet() {
+        document.querySelector('.wallet-menu')?.remove();
+        try {
+            // Request MetaMask to show account picker
+            await window.ethereum.request({
+                method: 'wallet_requestPermissions',
+                params: [{ eth_accounts: {} }]
+            });
+            
+            // Get the newly selected account
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            if (accounts.length > 0) {
+                this.currentUser = accounts[0];
+                // Reload contracts with new signer
+                await this.loadContracts();
+                // Update the wallet UI
+                this.updateWalletUI();
+                // Reload page content to reflect new wallet state
+                await this.loadPageContent();
+                this.showNotification('Wallet switched successfully!', 'success');
+            }
+        } catch (error) {
+            console.error('Error switching wallet:', error);
+            if (error.code !== 4001) { // User didn't reject
+                this.showNotification('Failed to switch wallet', 'error');
+            }
+        }
     }
 
     async copyAddress() {
@@ -196,10 +312,10 @@ class DeAutoApp {
     }
 
     // Initialize app
-    init() {
+    async init() {
         this.setupEventListeners();
-        this.checkWalletConnection();
-        this.loadPageContent();
+        await this.checkWalletConnection();
+        await this.loadPageContent();
     }
 
     setupEventListeners() {
@@ -252,10 +368,19 @@ class DeAutoApp {
     resetWalletUI() {
         const walletButtons = document.querySelectorAll('#connectWalletBtn, .connect-wallet-btn');
         const walletInfo = document.querySelectorAll('#walletInfo, .wallet-info');
+        const switchWalletButtons = document.querySelectorAll('#switchWalletBtn');
 
         walletButtons.forEach(btn => {
             btn.innerHTML = '<span class="truncate">Connect Wallet</span>';
             btn.classList.remove('connected');
+            btn.style.background = '';
+            btn.style.minWidth = '';
+        });
+
+        // Hide the static Switch Wallet button when disconnected
+        switchWalletButtons.forEach(btn => {
+            btn.style.display = 'none';
+            btn.classList.add('hidden');
         });
 
         walletInfo.forEach(info => {
@@ -267,12 +392,47 @@ class DeAutoApp {
 
     async checkWalletConnection() {
         if (window.ethereum) {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            if (accounts.length > 0) {
-                this.currentUser = accounts[0];
-                this.updateWalletUI();
-                await this.loadContracts();
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    this.currentUser = accounts[0];
+                    this.updateWalletUI();
+                    await this.loadContracts();
+                } else {
+                    // Even without a connected wallet, try to load contracts for read-only access
+                    await this.loadContractsReadOnly();
+                }
+            } catch (error) {
+                console.error('Error checking wallet:', error);
+                // Try read-only access
+                await this.loadContractsReadOnly();
             }
+        } else {
+            console.log('MetaMask not installed');
+        }
+    }
+
+    // Load contracts in read-only mode (no signer needed)
+    async loadContractsReadOnly() {
+        try {
+            // Use a public RPC for Sepolia
+            const provider = window.ethereum 
+                ? new ethers.providers.Web3Provider(window.ethereum)
+                : new ethers.providers.JsonRpcProvider('https://rpc.sepolia.org');
+
+            // Handle both wrapped {abi: [...]} and raw [...] ABI formats
+            const nftAbi = CarNFT.abi || CarNFT;
+            const marketAbi = CarMarketplace.abi || CarMarketplace;
+
+            const nft = new ethers.Contract(carNftAddress, nftAbi, provider);
+            const market = new ethers.Contract(marketplaceAddress, marketAbi, provider);
+
+            this.contracts = { nft, market, provider, signer: null };
+            console.log('Contracts loaded in read-only mode');
+            return this.contracts;
+        } catch (error) {
+            console.error('Error loading contracts in read-only mode:', error);
+            return null;
         }
     }
 
@@ -428,8 +588,20 @@ class DeAutoApp {
     }
 }
 
-// Initialize the app
-const deAutoApp = new DeAutoApp();
+// Initialize the app after ethers is available
+let deAutoApp;
 
-// Export for use in other files
-window.deAutoApp = deAutoApp;
+waitForEthers(() => {
+    deAutoApp = new DeAutoApp();
+    window.deAutoApp = deAutoApp;
+    
+    // Auto-init on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => deAutoApp.init());
+    } else {
+        deAutoApp.init();
+    }
+});
+
+// Export for use in other files (will be set when ethers loads)
+window.deAutoApp = null;

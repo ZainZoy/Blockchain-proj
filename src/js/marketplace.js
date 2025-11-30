@@ -53,11 +53,11 @@ class MarketplaceManager {
             grid.innerHTML = `
                 <div class="col-span-full text-center py-12">
                     <div class="text-6xl mb-4">🚗</div>
-                    <h3 class="text-white text-xl mb-2">No cars listed yet</h3>
-                    <p class="text-white/60 mb-6">Be the first to mint and list a car!</p>
-                    <button onclick="deAutoApp.showModal('mintModal')" 
-                        class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors">
-                        Mint Your First Car
+                    <h3 class="text-white text-xl mb-2">No Cars Listed Yet</h3>
+                    <p class="text-white/60 mb-6">Be the first to list your car on the marketplace!</p>
+                    <button onclick="deAutoApp.showModal('listModal')" 
+                        class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                        + List Your Car
                     </button>
                 </div>
             `;
