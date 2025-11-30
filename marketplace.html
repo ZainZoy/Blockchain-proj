@@ -58,7 +58,7 @@
                 <div class="layout-content-container flex flex-col w-full max-w-[1280px] flex-1">
                     <header
                         class="flex items-center justify-between whitespace-nowrap border-b border-solid border-white/10 px-6 sm:px-10 py-3 bg-background-dark/50 backdrop-blur-sm sticky top-5 z-10 rounded-lg">
-                        <div class="flex items-center gap-4 text-white">
+                        <a href="index.html" class="flex items-center gap-4 text-white hover:opacity-80 transition-opacity">
                             <div class="size-6 text-primary">
                                 <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                                     <g clip-path="url(#clip0_6_319)">
@@ -74,7 +74,7 @@
                                 </svg>
                             </div>
                             <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">DAX</h2>
-                        </div>
+                        </a>
                         <div class="hidden lg:flex flex-1 justify-end gap-8">
                             <div class="flex items-center gap-9">
                                 <a class="text-white/80 hover:text-primary transition-colors text-sm font-medium leading-normal"
@@ -111,6 +111,12 @@
                             <span class="material-symbols-outlined text-2xl">menu</span>
                         </button>
                     </header>
+
+                    <!-- Wallet Info -->
+                    <div id="walletInfo" class="hidden p-4 bg-background-dark/50 rounded-lg mt-4">
+                        <!-- Wallet info will be populated by JavaScript -->
+                    </div>
+
                     <main class="flex-grow mt-8">
                         <div class="flex flex-wrap justify-between gap-3 p-4">
                             <div class="flex min-w-72 flex-col gap-3">
