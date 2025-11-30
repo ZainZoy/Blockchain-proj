@@ -165,8 +165,12 @@ class DeAutoApp {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const signer = provider.getSigner();
 
-            const nft = new ethers.Contract(carNftAddress, CarNFT.abi, signer);
-            const market = new ethers.Contract(marketplaceAddress, CarMarketplace.abi, signer);
+            // Handle both wrapped {abi: [...]} and raw [...] ABI formats
+            const nftAbi = CarNFT.abi || CarNFT;
+            const marketAbi = CarMarketplace.abi || CarMarketplace;
+
+            const nft = new ethers.Contract(carNftAddress, nftAbi, signer);
+            const market = new ethers.Contract(marketplaceAddress, marketAbi, signer);
 
             this.contracts = { nft, market, signer };
             return this.contracts;

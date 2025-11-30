@@ -109,16 +109,16 @@ class MarketplaceManager {
 
                     <div class="flex gap-2 mt-auto">
                         ${isOwner ?
-                `<button onclick="marketplaceManager.removeListing('${listing.tokenId}')" 
+                `<button onclick="marketplaceManager.removeListing('${listing.carId}')" 
                                 class="flex-1 bg-red-600/20 text-red-400 border border-red-600/30 py-2 px-4 rounded-lg hover:bg-red-600/30 transition-colors text-sm font-medium">
                                 Remove Listing
                             </button>` :
-                `<button onclick="marketplaceManager.buyNow('${listing.tokenId}', '${listing.price}')" 
+                `<button onclick="marketplaceManager.buyNow('${listing.carId}', '${listing.priceWei}')" 
                                 class="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors text-sm font-bold">
                                 Buy Now
                             </button>`
             }
-                        <button onclick="marketplaceManager.viewDetails('${listing.tokenId}')" 
+                        <button onclick="marketplaceManager.viewDetails('${listing.carId}')" 
                             class="bg-white/10 text-white/80 hover:text-white hover:bg-white/20 py-2 px-4 rounded-lg transition-colors text-sm">
                             Details
                         </button>
@@ -148,38 +148,42 @@ class MarketplaceManager {
         }
     }
 
-    async buyNow(tokenId, price) {
+    async buyNow(carId, priceWei) {
         if (!deAutoApp.currentUser) {
             deAutoApp.showNotification('Please connect your wallet first', 'error');
             return;
         }
 
-        const confirmed = confirm(`Are you sure you want to buy this car for ${price} ETH?`);
+        // priceWei is passed as string from template, convert back to BigNumber
+        const priceBN = ethers.BigNumber.from(priceWei);
+        const priceEth = ethers.utils.formatEther(priceBN);
+        
+        const confirmed = confirm(`Are you sure you want to buy this car for ${priceEth} ETH?`);
         if (!confirmed) return;
 
         try {
-            await ContractManager.buyCar(tokenId, price);
+            await ContractManager.buyCar(carId, priceBN);
             await this.loadListings(); // Refresh listings
         } catch (error) {
             console.error('Purchase failed:', error);
         }
     }
 
-    async removeListing(tokenId) {
+    async removeListing(carId) {
         const confirmed = confirm('Are you sure you want to remove this listing?');
         if (!confirmed) return;
 
         try {
-            await ContractManager.removeListing(tokenId);
+            await ContractManager.removeListing(carId);
             await this.loadListings(); // Refresh listings
         } catch (error) {
             console.error('Remove listing failed:', error);
         }
     }
 
-    viewDetails(tokenId) {
+    viewDetails(carId) {
         // Navigate to car details page
-        window.location.href = `car-details.html?tokenId=${tokenId}`;
+        window.location.href = `car-details.html?carId=${carId}`;
     }
 
     setupEventListeners() {

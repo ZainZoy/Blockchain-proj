@@ -1,6 +1,6 @@
 // Contract addresses - UPDATE THESE WITH YOUR ACTUAL DEPLOYED CONTRACTS
-const carNftAddress = "0x9049D99B7728057D5f948D0d4bdFD41fd6C2Cbe0";
-const marketplaceAddress = "0xD4f89851C2e8509A40D7Ef8f7DBB00D3f081C9F6";
+const carNftAddress = "0xc41b2099a5B9ed58C729B724d83055E4aD5aA366";
+const marketplaceAddress = "0x2c535FcFC61077eb54091ae052D81371615DB620";
 
 // Network configuration
 const SUPPORTED_NETWORKS = {
@@ -50,15 +50,15 @@ class ContractManager {
         if (loadingDiv) loadingDiv.remove();
     }
 
-    // Mint car function with enhanced error handling and validation
-    static async mintCar(vin, make, model, year, tokenURI) {
+    // List car for sale (this also mints the NFT)
+    static async listCar(make, model, year, priceEther) {
         try {
             const contracts = await this.getContracts();
             if (!contracts) {
                 throw new Error('Please connect your wallet first');
             }
 
-            const { nft, signer } = contracts;
+            const { market, signer } = contracts;
 
             // Validate network
             const network = await signer.provider.getNetwork();
@@ -66,79 +66,37 @@ class ContractManager {
                 throw new Error(`Unsupported network. Please switch to Ethereum, Polygon, or Sepolia testnet.`);
             }
 
-            this.showLoading('Checking wallet balance...');
+            this.showLoading('Listing your car on the marketplace...');
 
-            // Check if user has enough ETH/MATIC for gas
-            const balance = await signer.getBalance();
-            const gasEstimate = await nft.estimateGas.mintCar(
-                deAutoApp.currentUser,
-                tokenURI,
-                vin,
-                make,
-                model,
-                year
-            );
-            const gasPrice = await signer.provider.getGasPrice();
-            const totalGasCost = gasEstimate.mul(gasPrice);
+            // Convert price to wei
+            const priceWei = ethers.utils.parseEther(priceEther.toString());
 
-            if (balance.lt(totalGasCost)) {
-                const currency = SUPPORTED_NETWORKS[network.chainId].currency;
-                throw new Error(`Insufficient ${currency} for gas fees. Need at least ${ethers.utils.formatEther(totalGasCost)} ${currency}`);
-            }
-
-            this.showLoading('Minting your car NFT...');
-
-            // Check if VIN already exists (if contract supports this)
-            try {
-                // This assumes your contract has a function to check VIN uniqueness
-                const vinExists = await nft.vinExists(vin);
-                if (vinExists) {
-                    throw new Error('A car with this VIN already exists');
-                }
-            } catch (e) {
-                // If function doesn't exist, continue
-                console.log('VIN check not available');
-            }
-
-            const tx = await nft.mintCar(
-                deAutoApp.currentUser,
-                tokenURI,
-                vin,
-                make,
-                model,
-                year,
-                {
-                    gasLimit: gasEstimate.mul(120).div(100) // Add 20% buffer
-                }
-            );
+            // Call listCar on marketplace - this mints the NFT and lists it
+            const tx = await market.listCar(make, model, parseInt(year), priceWei);
 
             this.showLoading(`Waiting for confirmation... (Tx: ${tx.hash.substring(0, 10)}...)`);
             const receipt = await tx.wait();
 
             this.hideLoading();
 
-            // Get the token ID from the event
-            const mintEvent = receipt.events?.find(e => e.event === 'Transfer' || e.event === 'CarMinted');
-            const tokenId = mintEvent?.args?.tokenId || mintEvent?.args?.[2];
+            // Get the carId from the event
+            const listEvent = receipt.events?.find(e => e.event === 'CarListed');
+            const carId = listEvent?.args?.carId;
+            const tokenId = listEvent?.args?.tokenId;
 
-            deAutoApp.showNotification(`Car minted successfully! Token ID: ${tokenId}`, 'success');
-
-            // Update contract address display
-            document.querySelectorAll('#contractAddress').forEach(el => {
-                el.textContent = `${carNftAddress.substring(0, 6)}...${carNftAddress.slice(-4)}`;
-            });
+            deAutoApp.showNotification(`Car listed successfully! Car ID: ${carId}, Token ID: ${tokenId}`, 'success');
 
             // Reload relevant data
-            if (deAutoApp.currentPage === 'my-garage') {
-                await myGarageManager.loadMyCars();
+            if (typeof marketplaceManager !== 'undefined') {
+                await marketplaceManager.loadListings();
             }
 
-            return { tx, tokenId, receipt };
+            return { tx, carId, tokenId, receipt };
         } catch (error) {
             this.hideLoading();
-            console.error('Error minting car:', error);
+            console.error('Error listing car:', error);
 
-            let errorMessage = 'Error minting car: ';
+            let errorMessage = 'Error listing car: ';
             if (error.code === 4001) {
                 errorMessage += 'Transaction rejected by user';
             } else if (error.code === -32603) {
@@ -154,60 +112,15 @@ class ContractManager {
         }
     }
 
-    // List car for sale
-    static async listCar(tokenId, priceEther) {
+    // Buy car with comprehensive validation
+    static async buyCar(carId, priceWei) {
         try {
             const contracts = await this.getContracts();
             if (!contracts) {
                 throw new Error('Please connect your wallet first');
             }
 
-            const { nft, market } = contracts;
-
-            this.showLoading('Approving marketplace...');
-
-            // 1. Check if already approved
-            const approved = await nft.getApproved(tokenId);
-            if (approved !== market.address) {
-                const approveTx = await nft.approve(market.address, tokenId);
-                await approveTx.wait();
-            }
-
-            this.showLoading('Listing car for sale...');
-
-            // 2. List the car
-            const tx = await market.listCar(tokenId, ethers.utils.parseEther(priceEther));
-            await tx.wait();
-
-            this.hideLoading();
-            deAutoApp.showNotification("Car listed successfully!", 'success');
-
-            // Reload listings
-            if (deAutoApp.currentPage === 'marketplace') {
-                await deAutoApp.loadMarketplace();
-            }
-            if (deAutoApp.currentPage === 'my-garage') {
-                await deAutoApp.loadMyGarage();
-            }
-
-            return tx;
-        } catch (error) {
-            this.hideLoading();
-            console.error('Error listing car:', error);
-            deAutoApp.showNotification('Error listing car: ' + error.message, 'error');
-            throw error;
-        }
-    }
-
-    // Buy car with comprehensive validation and real transaction handling
-    static async buyCar(tokenId, priceEther) {
-        try {
-            const contracts = await this.getContracts();
-            if (!contracts) {
-                throw new Error('Please connect your wallet first');
-            }
-
-            const { market, nft, signer } = contracts;
+            const { market, signer } = contracts;
 
             // Validate network
             const network = await signer.provider.getNetwork();
@@ -219,39 +132,32 @@ class ContractManager {
             this.showLoading('Validating purchase...');
 
             // Check if listing still exists and is active
-            const listing = await market.listings(tokenId);
-            if (!listing.active) {
+            const car = await market.getCar(carId);
+            if (car.isSold) {
                 throw new Error('This car is no longer available for sale');
             }
 
-            // Verify the price matches
-            const listingPrice = listing.price;
-            const expectedPrice = ethers.utils.parseEther(priceEther);
-            if (!listingPrice.eq(expectedPrice)) {
-                throw new Error('Price has changed. Please refresh and try again.');
-            }
-
             // Check if user is not the seller
-            if (listing.seller.toLowerCase() === deAutoApp.currentUser.toLowerCase()) {
+            if (car.seller.toLowerCase() === deAutoApp.currentUser.toLowerCase()) {
                 throw new Error('You cannot buy your own car');
             }
 
             // Check user balance
             const balance = await signer.getBalance();
-            const gasEstimate = await market.estimateGas.buyCar(tokenId, { value: expectedPrice });
+            const gasEstimate = await market.estimateGas.buyCar(carId, { value: priceWei });
             const gasPrice = await signer.provider.getGasPrice();
             const totalGasCost = gasEstimate.mul(gasPrice);
-            const totalRequired = expectedPrice.add(totalGasCost);
+            const totalRequired = priceWei.add(totalGasCost);
 
             if (balance.lt(totalRequired)) {
                 const currency = networkInfo.currency;
-                throw new Error(`Insufficient ${currency}. Need ${ethers.utils.formatEther(totalRequired)} ${currency} (${priceEther} + gas)`);
+                throw new Error(`Insufficient ${currency}. Need ${ethers.utils.formatEther(totalRequired)} ${currency}`);
             }
 
             this.showLoading('Processing purchase...');
 
-            const tx = await market.buyCar(tokenId, {
-                value: expectedPrice,
+            const tx = await market.buyCar(carId, {
+                value: priceWei,
                 gasLimit: gasEstimate.mul(120).div(100) // Add 20% buffer
             });
 
@@ -260,23 +166,17 @@ class ContractManager {
 
             this.hideLoading();
 
-            // Verify ownership transfer
-            const newOwner = await nft.ownerOf(tokenId);
-            if (newOwner.toLowerCase() !== deAutoApp.currentUser.toLowerCase()) {
-                throw new Error('Ownership transfer failed. Please contact support.');
-            }
-
-            deAutoApp.showNotification(`Car purchased successfully! You are now the owner of Token #${tokenId}`, 'success');
+            deAutoApp.showNotification(`Car purchased successfully! You are now the owner.`, 'success');
 
             // Reload data
-            if (deAutoApp.currentPage === 'marketplace') {
+            if (typeof marketplaceManager !== 'undefined') {
                 await marketplaceManager.loadListings();
             }
-            if (deAutoApp.currentPage === 'my-garage') {
+            if (typeof myGarageManager !== 'undefined') {
                 await myGarageManager.loadMyCars();
             }
 
-            return { tx, receipt, tokenId };
+            return { tx, receipt, carId };
         } catch (error) {
             this.hideLoading();
             console.error('Error buying car:', error);
@@ -297,45 +197,66 @@ class ContractManager {
         }
     }
 
-    // Get user's owned cars
+    // Get user's owned cars by checking Transfer events
     static async getMyCars() {
         try {
             const contracts = await this.getContracts();
             if (!contracts || !deAutoApp.currentUser) return [];
 
-            const { nft } = contracts;
+            const { nft, market } = contracts;
 
-            // Get balance of user
-            const balance = await nft.balanceOf(deAutoApp.currentUser);
+            // Get all CarMinted events and filter for current owner
+            const mintFilter = nft.filters.CarMinted();
+            const transferFilter = nft.filters.Transfer(null, deAutoApp.currentUser);
+            
+            // Get transfer events TO user
+            const transferEvents = await nft.queryFilter(transferFilter, -50000);
+            
             const cars = [];
+            const processedTokens = new Set();
 
-            // Get each token owned by user
-            for (let i = 0; i < balance.toNumber(); i++) {
+            for (const event of transferEvents) {
                 try {
-                    const tokenId = await nft.tokenOfOwnerByIndex(deAutoApp.currentUser, i);
-                    const tokenURI = await nft.tokenURI(tokenId);
+                    const tokenId = event.args.tokenId;
+                    
+                    // Skip if already processed
+                    if (processedTokens.has(tokenId.toString())) continue;
+                    processedTokens.add(tokenId.toString());
 
-                    // Fetch metadata from IPFS/URI
-                    let metadata = {};
+                    // Check if user still owns this token
+                    const currentOwner = await nft.ownerOf(tokenId);
+                    if (currentOwner.toLowerCase() !== deAutoApp.currentUser.toLowerCase()) continue;
+
+                    // Get car details from NFT contract
+                    const details = await nft.getCarDetails(tokenId);
+
+                    // Check if it's listed in marketplace
+                    let isListed = false;
+                    let listPrice = "0";
                     try {
-                        if (tokenURI.startsWith('http')) {
-                            const response = await fetch(tokenURI);
-                            metadata = await response.json();
+                        const car = await market.getCarByTokenId(tokenId);
+                        if (car.carId.toString() !== "0" && !car.isSold) {
+                            // If marketplace owns the NFT, it's listed
+                            isListed = currentOwner.toLowerCase() === market.address.toLowerCase();
+                            listPrice = ethers.utils.formatEther(car.price);
                         }
-                    } catch (metaError) {
-                        console.warn('Could not fetch metadata for token', tokenId);
+                    } catch (e) {
+                        // Car not in marketplace
                     }
 
                     cars.push({
                         tokenId: tokenId.toString(),
-                        name: metadata.name || `Car #${tokenId}`,
-                        image: metadata.image || "https://via.placeholder.com/400x300?text=Car+NFT",
-                        description: metadata.description || "",
-                        attributes: metadata.attributes || [],
-                        isListed: false // You'll need to check marketplace contract
+                        name: `${details.make} ${details.model}`,
+                        make: details.make,
+                        model: details.model,
+                        year: details.year.toString(),
+                        image: "https://via.placeholder.com/400x300?text=" + encodeURIComponent(`${details.make} ${details.model}`),
+                        description: `${details.year} ${details.make} ${details.model}`,
+                        isListed: isListed,
+                        listPrice: listPrice
                     });
                 } catch (tokenError) {
-                    console.warn('Error fetching token at index', i, tokenError);
+                    console.warn('Error fetching token', tokenError);
                 }
             }
 
@@ -346,7 +267,7 @@ class ContractManager {
         }
     }
 
-    // Get marketplace listings with real blockchain data
+    // Get marketplace listings
     static async getListings() {
         try {
             const contracts = await this.getContracts();
@@ -356,90 +277,36 @@ class ContractManager {
 
             this.showLoading('Loading marketplace listings...');
 
-            // Get all listing events from the marketplace contract
-            const listingFilter = market.filters.CarListed();
-            const listingEvents = await market.queryFilter(listingFilter, -10000); // Last 10k blocks
+            // Get all available cars directly from contract
+            const availableCars = await market.getAllAvailableCars();
 
-            const listings = [];
-
-            for (const event of listingEvents) {
-                try {
-                    const { tokenId, seller, price } = event.args;
-
-                    // Check if still listed (not sold or removed)
-                    const listing = await market.listings(tokenId);
-                    if (!listing.active) continue;
-
-                    // Get NFT metadata
-                    const tokenURI = await nft.tokenURI(tokenId);
-                    let metadata = {
-                        name: `Car NFT #${tokenId}`,
-                        description: 'Unique car NFT',
-                        image: 'https://via.placeholder.com/400x300?text=Car+NFT'
-                    };
-
-                    // Try to fetch metadata from URI
-                    try {
-                        if (tokenURI.startsWith('http')) {
-                            const response = await fetch(tokenURI);
-                            const fetchedMetadata = await response.json();
-                            metadata = { ...metadata, ...fetchedMetadata };
-                        }
-                    } catch (metaError) {
-                        console.warn('Could not fetch metadata for token', tokenId);
-                    }
-
-                    // Get car details if available
-                    let carDetails = {};
-                    try {
-                        carDetails = await nft.getCarDetails(tokenId);
-                    } catch (e) {
-                        console.log('Car details not available for token', tokenId);
-                    }
-
-                    listings.push({
-                        tokenId: tokenId.toString(),
-                        name: metadata.name || `${carDetails.make || 'Unknown'} ${carDetails.model || 'Car'} #${tokenId}`,
-                        price: ethers.utils.formatEther(price),
-                        priceWei: price,
-                        image: metadata.image,
-                        seller: seller,
-                        description: metadata.description,
-                        attributes: metadata.attributes || [],
-                        carDetails: carDetails,
-                        listingTimestamp: event.blockNumber
-                    });
-                } catch (tokenError) {
-                    console.warn('Error processing token', event.args.tokenId, tokenError);
-                }
-            }
+            const listings = availableCars.map(car => ({
+                carId: car.carId.toString(),
+                tokenId: car.tokenId.toString(),
+                name: `${car.make} ${car.model}`,
+                make: car.make,
+                model: car.model,
+                year: car.year.toString(),
+                price: ethers.utils.formatEther(car.price),
+                priceWei: car.price,
+                image: "https://via.placeholder.com/400x300?text=" + encodeURIComponent(`${car.make} ${car.model}`),
+                seller: car.seller,
+                description: `${car.year} ${car.make} ${car.model}`
+            }));
 
             this.hideLoading();
 
-            // Sort by most recent listings first
-            return listings.sort((a, b) => b.listingTimestamp - a.listingTimestamp);
+            return listings;
 
         } catch (error) {
             this.hideLoading();
             console.error('Error getting listings:', error);
-
-            // Return sample data if blockchain query fails
-            return [
-                {
-                    tokenId: "1",
-                    name: "Sample Car NFT #1",
-                    price: "0.1",
-                    priceWei: ethers.utils.parseEther("0.1"),
-                    image: "https://via.placeholder.com/400x300?text=Sample+Car+1",
-                    seller: "0x123...abc",
-                    description: "Sample car for demonstration"
-                }
-            ];
+            return [];
         }
     }
 
     // Remove listing
-    static async removeListing(tokenId) {
+    static async removeListing(carId) {
         try {
             const contracts = await this.getContracts();
             if (!contracts) {
@@ -450,18 +317,18 @@ class ContractManager {
 
             this.showLoading('Removing listing...');
 
-            const tx = await market.removeListing(tokenId);
+            const tx = await market.removeCar(carId);
             await tx.wait();
 
             this.hideLoading();
             deAutoApp.showNotification("Listing removed successfully!", 'success');
 
             // Reload data
-            if (deAutoApp.currentPage === 'marketplace') {
-                await deAutoApp.loadMarketplace();
+            if (typeof marketplaceManager !== 'undefined') {
+                await marketplaceManager.loadListings();
             }
-            if (deAutoApp.currentPage === 'my-garage') {
-                await deAutoApp.loadMyGarage();
+            if (typeof myGarageManager !== 'undefined') {
+                await myGarageManager.loadMyCars();
             }
 
             return tx;
@@ -469,6 +336,39 @@ class ContractManager {
             this.hideLoading();
             console.error('Error removing listing:', error);
             deAutoApp.showNotification('Error removing listing: ' + error.message, 'error');
+            throw error;
+        }
+    }
+
+    // Update car price
+    static async updateCarPrice(carId, newPriceEther) {
+        try {
+            const contracts = await this.getContracts();
+            if (!contracts) {
+                throw new Error('Please connect your wallet first');
+            }
+
+            const { market } = contracts;
+
+            this.showLoading('Updating price...');
+
+            const priceWei = ethers.utils.parseEther(newPriceEther.toString());
+            const tx = await market.updateCarPrice(carId, priceWei);
+            await tx.wait();
+
+            this.hideLoading();
+            deAutoApp.showNotification("Price updated successfully!", 'success');
+
+            // Reload data
+            if (typeof marketplaceManager !== 'undefined') {
+                await marketplaceManager.loadListings();
+            }
+
+            return tx;
+        } catch (error) {
+            this.hideLoading();
+            console.error('Error updating price:', error);
+            deAutoApp.showNotification('Error updating price: ' + error.message, 'error');
             throw error;
         }
     }

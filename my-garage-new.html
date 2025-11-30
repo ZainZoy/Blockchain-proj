@@ -90,10 +90,10 @@
                                 <span class="material-symbols-outlined mr-2">refresh</span>
                                 <span class="truncate">Refresh</span>
                             </button>
-                            <button id="mintCarBtn"
+                            <button id="listCarBtn" onclick="deAutoApp.showModal('listModal')"
                                 class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-green-700 transition-all duration-300">
-                                <span class="material-symbols-outlined mr-2">add</span>
-                                <span class="truncate">Mint Car</span>
+                                <span class="material-symbols-outlined mr-2">sell</span>
+                                <span class="truncate">List New Car</span>
                             </button>
                         </div>
                     </div>
@@ -155,55 +155,43 @@
         </div>
     </div>
 
-    <!-- Mint Car Modal -->
-    <div id="mintModal" class="modal">
+    <!-- List Car Modal -->
+    <div id="listModal" class="modal">
         <div class="modal-content">
             <span class="close-modal text-white float-right text-2xl cursor-pointer">&times;</span>
-            <h2 class="text-white text-xl mb-4">Mint New Car NFT</h2>
-            <form id="mintForm" class="space-y-4">
-                <div>
-                    <label class="block text-white/80 text-sm mb-2">VIN Number</label>
-                    <input type="text" id="vin" placeholder="17-character VIN" maxlength="17" required
-                        class="form-input w-full">
-                    <small class="text-white/60 text-xs">Vehicle Identification Number (17 characters)</small>
-                </div>
-
+            <h2 class="text-white text-xl mb-4">List New Car for Sale</h2>
+            <p class="text-white/60 text-sm mb-4">This will mint a new Car NFT and list it on the marketplace.</p>
+            <form id="listForm" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-white/80 text-sm mb-2">Make</label>
+                        <label class="block text-white/80 text-sm mb-2">Make *</label>
                         <input type="text" id="make" placeholder="e.g., Tesla" required class="form-input w-full">
                     </div>
                     <div>
-                        <label class="block text-white/80 text-sm mb-2">Model</label>
+                        <label class="block text-white/80 text-sm mb-2">Model *</label>
                         <input type="text" id="model" placeholder="e.g., Model S" required class="form-input w-full">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-white/80 text-sm mb-2">Year</label>
-                    <input type="number" id="year" placeholder="2024" min="1900" max="2030" required
-                        class="form-input w-full">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Year *</label>
+                        <input type="number" id="year" placeholder="2024" min="1900" max="2030" required
+                            class="form-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Price (ETH) *</label>
+                        <input type="number" id="price" step="0.001" min="0.001" placeholder="0.1" required
+                            class="form-input w-full">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-white/80 text-sm mb-2">Metadata URI</label>
-                    <input type="url" id="tokenURI" placeholder="https://ipfs.io/ipfs/..." required
-                        class="form-input w-full">
-                    <small class="text-white/60 text-xs">IPFS or HTTP URL to car metadata JSON</small>
-                </div>
-
-                <div>
-                    <label class="block text-white/80 text-sm mb-2">Car Image URL (Optional)</label>
-                    <input type="url" id="imageURL" placeholder="https://example.com/car-image.jpg"
-                        class="form-input w-full">
-                </div>
-
-                <button type="submit" id="mintButton"
+                <button type="submit" id="listButton"
                     class="w-full bg-primary text-white p-3 rounded hover:bg-primary/90 transition-colors font-semibold">
-                    <span class="mint-text">Mint Car NFT</span>
-                    <div class="mint-loading hidden flex items-center justify-center gap-2">
+                    <span class="list-text">List Car for Sale</span>
+                    <div class="list-loading hidden flex items-center justify-center gap-2">
                         <div class="spinner"></div>
-                        <span>Minting...</span>
+                        <span>Processing...</span>
                     </div>
                 </button>
             </form>
@@ -228,27 +216,19 @@
             await myGarageManager.init();
         });
 
-        // Mint form handler
-        document.getElementById('mintForm').addEventListener('submit', async function (e) {
+        // List form handler
+        document.getElementById('listForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             // Get form values
-            const vin = document.getElementById('vin').value.trim();
             const make = document.getElementById('make').value.trim();
             const model = document.getElementById('model').value.trim();
             const year = parseInt(document.getElementById('year').value);
-            const tokenURI = document.getElementById('tokenURI').value.trim();
-            const imageURL = document.getElementById('imageURL').value.trim();
+            const price = document.getElementById('price').value.trim();
 
             // Validation
-            if (!vin || !make || !model || !year || !tokenURI) {
+            if (!make || !model || !year || !price) {
                 deAutoApp.showNotification('Please fill all required fields', 'error');
-                return;
-            }
-
-            // VIN validation (basic)
-            if (vin.length !== 17) {
-                deAutoApp.showNotification('VIN must be exactly 17 characters', 'error');
                 return;
             }
 
@@ -259,35 +239,40 @@
                 return;
             }
 
+            // Price validation
+            if (parseFloat(price) < 0.001) {
+                deAutoApp.showNotification('Minimum price is 0.001 ETH', 'error');
+                return;
+            }
+
             // Check wallet connection
             if (!deAutoApp.currentUser) {
                 deAutoApp.showNotification('Please connect your wallet first', 'error');
                 return;
             }
 
-            const mintButton = document.getElementById('mintButton');
-            const mintText = mintButton.querySelector('.mint-text');
-            const mintLoading = mintButton.querySelector('.mint-loading');
+            const listButton = document.getElementById('listButton');
+            const listText = listButton.querySelector('.list-text');
+            const listLoading = listButton.querySelector('.list-loading');
 
             try {
                 // Show loading state
-                mintButton.disabled = true;
-                mintText.classList.add('hidden');
-                mintLoading.classList.remove('hidden');
+                listButton.disabled = true;
+                listText.classList.add('hidden');
+                listLoading.classList.remove('hidden');
 
-                await ContractManager.mintCar(vin, make, model, year, tokenURI);
+                await ContractManager.listCar(make, model, year, price);
 
-                deAutoApp.hideModal('mintModal');
+                deAutoApp.hideModal('listModal');
                 this.reset();
-                await myGarageManager.loadMyCars(); // Refresh garage
 
             } catch (error) {
-                console.error('Minting failed:', error);
+                console.error('Listing failed:', error);
             } finally {
                 // Reset button state
-                mintButton.disabled = false;
-                mintText.classList.remove('hidden');
-                mintLoading.classList.add('hidden');
+                listButton.disabled = false;
+                listText.classList.remove('hidden');
+                listLoading.classList.add('hidden');
             }
         });
     </script>

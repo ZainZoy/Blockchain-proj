@@ -109,6 +109,13 @@
                                 <p class="text-[#9cb0ba] text-base font-normal leading-normal">Browse, buy, and trade
                                     tokenized vehicles on the blockchain.</p>
                             </div>
+                            <div class="flex items-start gap-3">
+                                <button id="listCarBtn" onclick="deAutoApp.showModal('listModal')"
+                                    class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-green-700 transition-all duration-300">
+                                    <span class="material-symbols-outlined mr-2">sell</span>
+                                    <span class="truncate">List New Car</span>
+                                </button>
+                            </div>
                         </div>
                         <div
                             class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 py-3 border-y border-white/10 mt-4">
@@ -308,6 +315,49 @@
         </div>
     </div>
 
+    <!-- List Car Modal -->
+    <div id="listModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal text-white float-right text-2xl cursor-pointer">&times;</span>
+            <h2 class="text-white text-xl mb-4">List New Car for Sale</h2>
+            <p class="text-white/60 text-sm mb-4">This will mint a new Car NFT and list it on the marketplace.</p>
+            <form id="listForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Make *</label>
+                        <input type="text" id="make" placeholder="e.g., Tesla" required class="form-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Model *</label>
+                        <input type="text" id="model" placeholder="e.g., Model S" required class="form-input w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Year *</label>
+                        <input type="number" id="year" placeholder="2024" min="1900" max="2030" required
+                            class="form-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-white/80 text-sm mb-2">Price (ETH) *</label>
+                        <input type="number" id="price" step="0.001" min="0.001" placeholder="0.1" required
+                            class="form-input w-full">
+                    </div>
+                </div>
+
+                <button type="submit" id="listButton"
+                    class="w-full bg-primary text-white p-3 rounded hover:bg-primary/90 transition-colors font-semibold">
+                    <span class="list-text">List Car for Sale</span>
+                    <div class="list-loading hidden flex items-center justify-center gap-2">
+                        <div class="spinner"></div>
+                        <span>Processing...</span>
+                    </div>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script src="./src/js/components.js"></script>
     <script src="./src/js/marketplace.js"></script>
     <script src="./src/js/app.js"></script>
@@ -330,6 +380,60 @@
             } catch (error) {
                 console.error('Error initializing marketplace page:', error);
                 deAutoApp.showNotification('Error loading marketplace', 'error');
+            }
+        });
+
+        // List form handler
+        document.getElementById('listForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const make = document.getElementById('make').value.trim();
+            const model = document.getElementById('model').value.trim();
+            const year = parseInt(document.getElementById('year').value);
+            const price = document.getElementById('price').value.trim();
+
+            if (!make || !model || !year || !price) {
+                deAutoApp.showNotification('Please fill all required fields', 'error');
+                return;
+            }
+
+            const currentYear = new Date().getFullYear();
+            if (year < 1900 || year > currentYear + 5) {
+                deAutoApp.showNotification('Please enter a valid year', 'error');
+                return;
+            }
+
+            if (parseFloat(price) < 0.001) {
+                deAutoApp.showNotification('Minimum price is 0.001 ETH', 'error');
+                return;
+            }
+
+            if (!deAutoApp.currentUser) {
+                deAutoApp.showNotification('Please connect your wallet first', 'error');
+                return;
+            }
+
+            const listButton = document.getElementById('listButton');
+            const listText = listButton.querySelector('.list-text');
+            const listLoading = listButton.querySelector('.list-loading');
+
+            try {
+                listButton.disabled = true;
+                listText.classList.add('hidden');
+                listLoading.classList.remove('hidden');
+
+                await ContractManager.listCar(make, model, year, price);
+
+                deAutoApp.hideModal('listModal');
+                this.reset();
+                await marketplaceManager.loadListings();
+
+            } catch (error) {
+                console.error('Listing failed:', error);
+            } finally {
+                listButton.disabled = false;
+                listText.classList.remove('hidden');
+                listLoading.classList.add('hidden');
             }
         });
     </script>
