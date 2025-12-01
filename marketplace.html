@@ -84,6 +84,8 @@
                                 <a class="text-white/80 hover:text-primary transition-colors text-sm font-medium leading-normal"
                                     href="my-garage-new.html">My Garage</a>
                                 <a class="text-white/80 hover:text-primary transition-colors text-sm font-medium leading-normal"
+                                    href="history.html">History</a>
+                                <a class="text-white/80 hover:text-primary transition-colors text-sm font-medium leading-normal"
                                     href="community.html">Community</a>
                             </div>
                             <div class="flex gap-2">
@@ -126,6 +128,11 @@
                                     tokenized vehicles on the blockchain.</p>
                             </div>
                             <div class="flex items-start gap-3">
+                                <button onclick="marketplaceManager.loadListings()"
+                                    class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white/10 text-white/80 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-colors">
+                                    <span class="material-symbols-outlined mr-2">refresh</span>
+                                    <span class="truncate">Refresh</span>
+                                </button>
                                 <button id="listCarBtn" onclick="deAutoApp.showModal('listModal')"
                                     class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-green-700 transition-all duration-300">
                                     <span class="material-symbols-outlined mr-2">sell</span>
