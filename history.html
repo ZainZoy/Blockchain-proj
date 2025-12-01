@@ -191,6 +191,7 @@
             }
 
             async loadTransactions() {
+                console.log('[History] Starting loadTransactions...');
                 const tbody = document.getElementById('transactionTableBody');
                 tbody.innerHTML = `
                     <tr>
@@ -203,30 +204,69 @@
 
                 try {
                     // Wait for ABIs to load first
+                    console.log('[History] Checking ABIs...', { CarNFT: !!CarNFT, CarMarketplace: !!CarMarketplace });
                     if (!CarNFT || !CarMarketplace) {
+                        console.log('[History] Loading ABIs...');
                         await loadABIs();
+                        console.log('[History] ABIs loaded:', { CarNFT: !!CarNFT, CarMarketplace: !!CarMarketplace });
                     }
 
-                    // Create provider for read-only access
-                    const provider = new ethers.providers.JsonRpcProvider('https://rpc.sepolia.org');
+                    // Create provider for read-only access - try multiple RPCs
+                    console.log('[History] Creating provider...');
+                    let provider;
+                    const rpcs = [
+                        'https://eth-sepolia.g.alchemy.com/v2/demo',
+                        'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+                        'https://rpc.sepolia.org',
+                        'https://rpc2.sepolia.org'
+                    ];
+                    
+                    for (const rpc of rpcs) {
+                        try {
+                            console.log('[History] Trying RPC:', rpc);
+                            provider = new ethers.providers.JsonRpcProvider(rpc);
+                            const blockNumber = await Promise.race([
+                                provider.getBlockNumber(),
+                                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+                            ]);
+                            console.log('[History] Connected! Block number:', blockNumber);
+                            break;
+                        } catch (e) {
+                            console.log('[History] RPC failed:', rpc, e.message);
+                        }
+                    }
+                    
+                    if (!provider) {
+                        throw new Error('All RPC endpoints failed');
+                    }
                     
                     // Get marketplace contract
+                    console.log('[History] Marketplace address:', marketplaceAddress);
                     const marketAbi = CarMarketplace.abi || CarMarketplace;
+                    console.log('[History] ABI type:', Array.isArray(marketAbi) ? 'array' : typeof marketAbi, 'length:', marketAbi.length);
                     const market = new ethers.Contract(marketplaceAddress, marketAbi, provider);
+                    console.log('[History] Market contract created');
 
                     // Query CarSold events from the blockchain
+                    console.log('[History] Creating CarSold filter...');
                     const filter = market.filters.CarSold();
+                    console.log('[History] Filter:', filter);
+                    
+                    console.log('[History] Querying events from block 0 to latest...');
                     const events = await market.queryFilter(filter, 0, 'latest');
+                    console.log('[History] Events found:', events.length);
 
                     this.transactions = [];
                     let totalVolume = ethers.BigNumber.from(0);
                     const uniqueBuyers = new Set();
 
                     for (const event of events) {
+                        console.log('[History] Processing event:', event.transactionHash);
                         const { carId, tokenId, buyer, price } = event.args;
                         
                         // Get car details to find seller and car info
                         const car = await market.getCar(carId);
+                        console.log('[History] Car details:', { carId: carId.toString(), make: car.make, model: car.model });
                         
                         const tx = {
                             carId: carId.toString(),
@@ -249,6 +289,7 @@
 
                     // Sort by block number (newest first)
                     this.transactions.sort((a, b) => b.blockNumber - a.blockNumber);
+                    console.log('[History] Transactions processed:', this.transactions.length);
 
                     // Update stats
                     document.getElementById('totalSales').textContent = this.transactions.length;
@@ -256,13 +297,16 @@
                     document.getElementById('uniqueBuyers').textContent = uniqueBuyers.size;
 
                     this.renderTransactions();
+                    console.log('[History] Render complete');
                 } catch (error) {
-                    console.error('Error loading transactions:', error);
+                    console.error('[History] Error loading transactions:', error);
+                    console.error('[History] Error stack:', error.stack);
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="6" class="text-center py-12">
                                 <div class="text-6xl mb-4">⚠️</div>
                                 <p class="text-red-400 mb-4">Error loading transaction history</p>
+                                <p class="text-white/40 text-sm mb-4">${error.message}</p>
                                 <button onclick="historyManager.loadTransactions()" 
                                     class="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90">
                                     Retry
@@ -346,18 +390,32 @@
 
         // Wait for ethers to be available then initialize
         function initHistory() {
+            console.log('[History] initHistory called');
+            console.log('[History] ethers available:', typeof ethers !== 'undefined');
+            
             if (typeof ethers === 'undefined') {
+                console.log('[History] Waiting for ethers...');
                 setTimeout(initHistory, 100);
                 return;
             }
             
+            console.log('[History] ethers is ready, loading ABIs...');
+            console.log('[History] marketplaceAddress:', typeof marketplaceAddress !== 'undefined' ? marketplaceAddress : 'NOT DEFINED');
+            console.log('[History] loadABIs function:', typeof loadABIs);
+            
             // Load ABIs then init
             loadABIs().then(() => {
+                console.log('[History] ABIs loaded, calling historyManager.init()');
                 historyManager.init();
+            }).catch(err => {
+                console.error('[History] Error loading ABIs:', err);
             });
         }
 
-        document.addEventListener('DOMContentLoaded', initHistory);
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[History] DOMContentLoaded fired');
+            initHistory();
+        });
     </script>
 </body>
 
