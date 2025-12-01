@@ -73,6 +73,12 @@ class MarketplaceManager {
     createListingCard(listing) {
         const isOwner = deAutoApp.currentUser &&
             listing.seller.toLowerCase() === deAutoApp.currentUser.toLowerCase();
+        
+        // Get seller username from deAutoApp
+        const sellerUsername = deAutoApp.getUsername(listing.seller);
+        const sellerDisplay = sellerUsername 
+            ? `<span class="text-primary font-medium">${sellerUsername}</span> <span class="text-white/40">(${listing.seller.substring(0, 6)}...${listing.seller.slice(-4)})</span>`
+            : `${listing.seller.substring(0, 6)}...${listing.seller.slice(-4)}`;
 
         return `
             <div class="flex flex-col gap-4 p-4 rounded-xl bg-background-dark/50 border border-white/10 card-glow hover:border-primary/50 transition-all duration-300">
@@ -104,7 +110,7 @@ class MarketplaceManager {
                     </div>
 
                     <div class="text-white/60 text-xs">
-                        <p>Seller: ${listing.seller.substring(0, 6)}...${listing.seller.slice(-4)}</p>
+                        <p>Seller: ${sellerDisplay}</p>
                     </div>
 
                     <div class="flex gap-2 mt-auto">

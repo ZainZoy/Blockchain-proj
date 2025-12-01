@@ -98,6 +98,11 @@
                             <p class="text-white/80 text-base font-normal leading-normal">View all car purchases on the DAX marketplace</p>
                         </div>
                         <div class="flex gap-3">
+                            <a href="https://sepolia.etherscan.io/address/0x2c535FcFC61077eb54091ae052D81371615DB620" target="_blank"
+                                class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
+                                <span class="material-symbols-outlined mr-2">open_in_new</span>
+                                <span class="truncate">View on Etherscan</span>
+                            </a>
                             <button id="refreshHistoryBtn" onclick="historyManager.loadTransactions()"
                                 class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-white/10 text-white/80 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-colors">
                                 <span class="material-symbols-outlined mr-2">refresh</span>
@@ -197,12 +202,17 @@
                 `;
 
                 try {
-                    // Wait for contracts to be ready
-                    if (!deAutoApp.contracts) {
-                        await deAutoApp.loadContractsReadOnly();
+                    // Wait for ABIs to load first
+                    if (!CarNFT || !CarMarketplace) {
+                        await loadABIs();
                     }
 
-                    const { market } = deAutoApp.contracts;
+                    // Create provider for read-only access
+                    const provider = new ethers.providers.JsonRpcProvider('https://rpc.sepolia.org');
+                    
+                    // Get marketplace contract
+                    const marketAbi = CarMarketplace.abi || CarMarketplace;
+                    const market = new ethers.Contract(marketplaceAddress, marketAbi, provider);
 
                     // Query CarSold events from the blockchain
                     const filter = market.filters.CarSold();
@@ -279,7 +289,11 @@
                     return;
                 }
 
-                tbody.innerHTML = this.transactions.map(tx => `
+                tbody.innerHTML = this.transactions.map(tx => {
+                    const sellerUsername = deAutoApp.getUsername(tx.seller);
+                    const buyerUsername = deAutoApp.getUsername(tx.buyer);
+                    
+                    return `
                     <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td class="px-4 py-4">
                             <div class="flex items-center gap-3">
@@ -294,16 +308,22 @@
                             <span class="text-white/80 font-mono text-sm">#${tx.tokenId}</span>
                         </td>
                         <td class="px-4 py-4">
-                            <a href="https://sepolia.etherscan.io/address/${tx.seller}" target="_blank" 
-                               class="text-white/80 hover:text-primary transition-colors font-mono text-sm">
-                                ${tx.seller.substring(0, 6)}...${tx.seller.slice(-4)}
-                            </a>
+                            <div>
+                                ${sellerUsername ? `<div class="text-primary font-medium text-sm">${sellerUsername}</div>` : ''}
+                                <a href="https://sepolia.etherscan.io/address/${tx.seller}" target="_blank" 
+                                   class="text-white/60 hover:text-primary transition-colors font-mono text-xs">
+                                    ${tx.seller.substring(0, 6)}...${tx.seller.slice(-4)}
+                                </a>
+                            </div>
                         </td>
                         <td class="px-4 py-4">
-                            <a href="https://sepolia.etherscan.io/address/${tx.buyer}" target="_blank"
-                               class="text-white/80 hover:text-primary transition-colors font-mono text-sm">
-                                ${tx.buyer.substring(0, 6)}...${tx.buyer.slice(-4)}
-                            </a>
+                            <div>
+                                ${buyerUsername ? `<div class="text-green-400 font-medium text-sm">${buyerUsername}</div>` : ''}
+                                <a href="https://sepolia.etherscan.io/address/${tx.buyer}" target="_blank"
+                                   class="text-white/60 hover:text-primary transition-colors font-mono text-xs">
+                                    ${tx.buyer.substring(0, 6)}...${tx.buyer.slice(-4)}
+                                </a>
+                            </div>
                         </td>
                         <td class="px-4 py-4">
                             <span class="text-primary font-bold">${tx.price} ETH</span>
@@ -316,7 +336,7 @@
                             </a>
                         </td>
                     </tr>
-                `).join('');
+                `}).join('');
             }
         }
 
@@ -324,17 +344,20 @@
         const historyManager = new HistoryManager();
         window.historyManager = historyManager;
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            deAutoApp.currentPage = 'history';
-            // Wait for deAutoApp to be ready
-            const waitForApp = setInterval(async () => {
-                if (window.deAutoApp && deAutoApp.init) {
-                    clearInterval(waitForApp);
-                    await deAutoApp.init();
-                    await historyManager.init();
-                }
-            }, 100);
-        });
+        // Wait for ethers to be available then initialize
+        function initHistory() {
+            if (typeof ethers === 'undefined') {
+                setTimeout(initHistory, 100);
+                return;
+            }
+            
+            // Load ABIs then init
+            loadABIs().then(() => {
+                historyManager.init();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initHistory);
     </script>
 </body>
 

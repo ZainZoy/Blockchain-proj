@@ -22,6 +22,45 @@ class DeAutoApp {
         this.currentPage = 'home';
         this.contracts = null;
         this.currentUser = null;
+        this.usernames = this.loadUsernames(); // Load usernames from localStorage
+    }
+
+    // Username management
+    loadUsernames() {
+        try {
+            return JSON.parse(localStorage.getItem('dax_usernames') || '{}');
+        } catch {
+            return {};
+        }
+    }
+
+    saveUsernames() {
+        localStorage.setItem('dax_usernames', JSON.stringify(this.usernames));
+    }
+
+    getUsername(address) {
+        if (!address) return null;
+        return this.usernames[address.toLowerCase()] || null;
+    }
+
+    setUsername(address, username) {
+        if (!address) return;
+        this.usernames[address.toLowerCase()] = username;
+        this.saveUsernames();
+    }
+
+    async promptForUsername() {
+        const currentUsername = this.getUsername(this.currentUser);
+        const username = prompt(
+            'Enter your display name (this will be shown to other users):',
+            currentUsername || ''
+        );
+        if (username !== null && username.trim()) {
+            this.setUsername(this.currentUser, username.trim());
+            this.showNotification('Username saved!', 'success');
+            // Refresh UI
+            this.updateWalletUI();
+        }
     }
 
     // Navigation
@@ -61,6 +100,11 @@ class DeAutoApp {
                 this.updateWalletUI();
                 await this.loadContracts();
 
+                // Prompt for username if not set
+                if (!this.getUsername(this.currentUser)) {
+                    setTimeout(() => this.promptForUsername(), 500);
+                }
+
                 // Load page-specific data
                 if (this.currentPage === 'marketplace') {
                     await this.loadMarketplace();
@@ -81,12 +125,13 @@ class DeAutoApp {
 
         const address = this.currentUser.substring(0, 6) + '...' + this.currentUser.substring(this.currentUser.length - 4);
         const balanceFormatted = parseFloat(balance).toFixed(4);
+        const username = this.getUsername(this.currentUser);
 
         walletButtons.forEach(btn => {
             btn.innerHTML = `
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span class="truncate font-mono">${address}</span>
+                    <span class="truncate ${username ? '' : 'font-mono'}">${username || address}</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
@@ -113,12 +158,19 @@ class DeAutoApp {
         walletInfo.forEach(info => {
             if (info) {
                 info.innerHTML = `
-                    <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center justify-between gap-4 flex-wrap">
                         <div>
-                            <p class="text-white text-sm">Connected: <span class="text-primary font-mono">${address}</span></p>
+                            <p class="text-white text-sm">
+                                ${username ? `<span class="text-primary font-bold">${username}</span> · ` : ''}
+                                <span class="text-white/80 font-mono">${address}</span>
+                            </p>
                             <p class="text-white/60 text-xs">Network: ${networkInfo?.name || 'Unknown'} | Balance: ${balanceFormatted} ${networkInfo?.currency || 'ETH'}</p>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="deAutoApp.promptForUsername()" class="flex items-center gap-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 px-3 py-2 rounded-lg text-sm font-bold transition-colors border border-purple-500/30">
+                                <span class="material-symbols-outlined text-base">edit</span>
+                                ${username ? 'Edit Name' : 'Set Name'}
+                            </button>
                             <button onclick="deAutoApp.switchWallet()" class="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                                 <span class="material-symbols-outlined text-base">swap_horiz</span>
                                 Switch Wallet
@@ -144,6 +196,7 @@ class DeAutoApp {
         // Remove existing menu first
         document.querySelector('.wallet-menu')?.remove();
 
+        const username = this.getUsername(this.currentUser);
         const menu = document.createElement('div');
         menu.className = 'wallet-menu fixed top-20 right-4 sm:right-8 md:right-16 lg:right-24 xl:right-40 bg-background-dark border border-white/20 rounded-xl p-4 z-[100] min-w-72 shadow-2xl shadow-black/50';
         menu.innerHTML = `
@@ -156,6 +209,13 @@ class DeAutoApp {
                     </div>
                 </div>
                 
+                ${username ? `
+                <div class="bg-primary/10 rounded-lg p-3 border border-primary/20">
+                    <div class="text-white/60 text-xs mb-1">Display Name</div>
+                    <div class="text-primary text-lg font-bold">${username}</div>
+                </div>
+                ` : ''}
+                
                 <div class="bg-white/5 rounded-lg p-3">
                     <div class="text-white/60 text-xs mb-1">Address</div>
                     <div class="text-white text-sm font-mono break-all">${this.currentUser}</div>
@@ -164,6 +224,13 @@ class DeAutoApp {
                 <hr class="border-white/10">
                 
                 <div class="space-y-1">
+                    <button onclick="deAutoApp.promptForUsername(); document.querySelector('.wallet-menu')?.remove();" class="w-full flex items-center gap-3 text-white hover:bg-white/10 rounded-lg px-3 py-2.5 transition-colors">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        <span class="font-medium">${username ? 'Edit Display Name' : 'Set Display Name'}</span>
+                    </button>
+                
                     <button onclick="deAutoApp.switchWallet()" class="w-full flex items-center gap-3 text-white hover:bg-white/10 rounded-lg px-3 py-2.5 transition-colors">
                         <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
