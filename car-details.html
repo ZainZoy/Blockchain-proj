@@ -264,17 +264,23 @@
                 const ownerAddress = this.isListed ? this.carData.seller : this.carData.owner;
                 const shortOwner = ownerAddress ? `${ownerAddress.slice(0, 6)}...${ownerAddress.slice(-4)}` : 'Unknown';
                 
+                // Check for stored car image
+                const storedImage = CarImageStorage.get(this.tokenId);
+                const imageSection = storedImage 
+                    ? `<img src="${storedImage}" alt="${this.carData.make} ${this.carData.model}" class="w-full h-full object-cover">`
+                    : `<div class="text-center p-8">
+                            <div class="text-8xl mb-4">🚗</div>
+                            <div class="text-white text-xl font-bold">${this.carData.make} ${this.carData.model}</div>
+                            <div class="text-white/60">${this.carData.year}</div>
+                        </div>`;
+                
                 content.innerHTML = `
                     <div class="max-w-4xl mx-auto">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             <!-- Car Image -->
                             <div class="space-y-4">
                                 <div class="aspect-video bg-background-dark/50 rounded-lg overflow-hidden flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <div class="text-8xl mb-4">🚗</div>
-                                        <div class="text-white text-xl font-bold">${this.carData.make} ${this.carData.model}</div>
-                                        <div class="text-white/60">${this.carData.year}</div>
-                                    </div>
+                                    ${imageSection}
                                 </div>
                             </div>
 

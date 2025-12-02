@@ -84,14 +84,21 @@ class MyGarageManager {
     }
 
     createCarCard(car) {
+        // Check for stored car image
+        const storedImage = typeof CarImageStorage !== 'undefined' ? CarImageStorage.get(car.tokenId) : null;
+        
+        const imageSection = storedImage 
+            ? `<img src="${storedImage}" alt="${car.make} ${car.model}" class="w-full h-full object-cover">`
+            : `<div class="text-center">
+                    <div class="text-4xl mb-2">🚗</div>
+                    <div class="text-white/60 text-sm">${car.make}</div>
+                </div>`;
+        
         return `
             <div class="flex flex-col gap-4 p-4 rounded-xl bg-background-dark/50 border border-white/10 card-glow hover:border-primary/50 transition-all duration-300">
                 <div class="relative">
                     <div class="w-full aspect-video rounded-lg overflow-hidden bg-background-dark/80 flex items-center justify-center">
-                        <div class="text-center">
-                            <div class="text-4xl mb-2">🚗</div>
-                            <div class="text-white/60 text-sm">${car.make}</div>
-                        </div>
+                        ${imageSection}
                     </div>
                     <div class="absolute top-2 right-2">
                         <span class="status-owned px-2 py-1 rounded text-xs font-medium bg-green-600/80 text-white">Owned</span>
