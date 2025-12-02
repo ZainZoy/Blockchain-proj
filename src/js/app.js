@@ -284,30 +284,19 @@ class ContractManager {
             // Get all available cars directly from contract
             const availableCars = await market.getAllAvailableCars();
 
-            const listings = availableCars.map(car => {
-                // Check for stored image in localStorage
-                let carImage = "https://via.placeholder.com/400x300?text=" + encodeURIComponent(`${car.make} ${car.model}`);
-                if (typeof CarImageStorage !== 'undefined') {
-                    const storedImage = CarImageStorage.get(car.tokenId.toString());
-                    if (storedImage) {
-                        carImage = storedImage;
-                    }
-                }
-                
-                return {
-                    carId: car.carId.toString(),
-                    tokenId: car.tokenId.toString(),
-                    name: `${car.make} ${car.model}`,
-                    make: car.make,
-                    model: car.model,
-                    year: car.year.toString(),
-                    price: ethers.utils.formatEther(car.price),
-                    priceWei: car.price,
-                    image: carImage,
-                    seller: car.seller,
-                    description: `${car.year} ${car.make} ${car.model}`
-                };
-            });
+            const listings = availableCars.map(car => ({
+                carId: car.carId.toString(),
+                tokenId: car.tokenId.toString(),
+                name: `${car.make} ${car.model}`,
+                make: car.make,
+                model: car.model,
+                year: car.year.toString(),
+                price: ethers.utils.formatEther(car.price),
+                priceWei: car.price,
+                image: "https://via.placeholder.com/400x300?text=" + encodeURIComponent(`${car.make} ${car.model}`),
+                seller: car.seller,
+                description: `${car.year} ${car.make} ${car.model}`
+            }));
 
             this.hideLoading();
 

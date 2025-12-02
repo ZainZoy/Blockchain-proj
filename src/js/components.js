@@ -17,39 +17,6 @@ function waitForEthers(callback, maxAttempts = 50) {
     check();
 }
 
-// Car image storage utilities (localStorage based)
-const CarImageStorage = {
-    storageKey: 'dax_car_images',
-    
-    getAll: function() {
-        try {
-            return JSON.parse(localStorage.getItem(this.storageKey) || '{}');
-        } catch {
-            return {};
-        }
-    },
-    
-    save: function(tokenId, imageData) {
-        const images = this.getAll();
-        images[tokenId] = imageData;
-        localStorage.setItem(this.storageKey, JSON.stringify(images));
-    },
-    
-    get: function(tokenId) {
-        const images = this.getAll();
-        return images[tokenId] || null;
-    },
-    
-    remove: function(tokenId) {
-        const images = this.getAll();
-        delete images[tokenId];
-        localStorage.setItem(this.storageKey, JSON.stringify(images));
-    }
-};
-
-// Make it globally available
-window.CarImageStorage = CarImageStorage;
-
 class DeAutoApp {
     constructor() {
         this.currentPage = 'home';
